@@ -1,0 +1,16 @@
+-------------------------------------------------
+EDIT HISTORY
+Question2Answer plugin
+-------------------------------------------------
+
+This is an event plugin for popular open source Q&A platform, Question2Answer <question2answer.org>. It store all edits to posts
+
+
+
+INSTALLATION & USAGE
+-------------------------------------------------
+
+1. Download and extract the files to a subfolder such as `edit-history` inside the `qa-plugins` folder of your Q2A installation.
+
+2. Go to Admin > Plugins and click the 'Set up edit history' button.
+
