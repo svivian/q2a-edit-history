@@ -101,11 +101,21 @@ class qa_edit_history
 		if ( !in_array( $event, $attachevents ) )
 			return;
 
-		// get config data
+		// question title or content was not changed
+		if ( $event == 'q_edit' && $params['title'] == $params['oldtitle'] && $params['content'] == $params['oldcontent'] )
+			return;
+
+		// answer content was not changed
+		if ( $event == 'a_edit' && $params['content'] == $params['oldcontent'] )
+			return;
+
+		// check if tracking is active
 		if ( !qa_opt($this->optactive) )
 			return;
 
-		// TODO: don't log edit if it's soon after the last one
+		// TODO: don't log ninja edits
+		// $params['oldquestion']['updated'];
+		// $params['oldanswer']['updated'];
 
 		$userid = qa_get_logged_in_userid();
 
