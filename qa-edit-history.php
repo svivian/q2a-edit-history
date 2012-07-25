@@ -20,13 +20,13 @@ class qa_edit_history
 			return
 				'CREATE TABLE IF NOT EXISTS ^'.$this->pluginkey.' ( ' .
 				'`postid` int(10) unsigned NOT NULL, ' .
-				'`edited` datetime NOT NULL, ' .
+				'`updated` datetime NOT NULL, ' .
 				'`title` varchar(800) DEFAULT NULL, ' .
 				'`content` varchar(8000) DEFAULT NULL, ' .
 				'`tags` varchar(800) DEFAULT NULL, ' .
 				'`userid` int(10) unsigned DEFAULT NULL, ' .
 				'`reason` varchar(800) DEFAULT NULL, ' .
-				'PRIMARY KEY (`postid`,`edited`) ' .
+				'PRIMARY KEY (`postid`,`updated`) ' .
 				') ENGINE=InnoDB DEFAULT CHARSET=utf8;';
 		}
 
@@ -110,7 +110,7 @@ class qa_edit_history
 		$userid = qa_get_logged_in_userid();
 
 		$sql =
-			'INSERT INTO ^edit_history (postid, edited, title, content, tags, userid, reason) ' .
+			'INSERT INTO ^edit_history (postid, updated, title, content, tags, userid, reason) ' .
 			'VALUES (#, NOW(), $, $, $, #, $)';
 
 		return qa_db_query_sub( $sql, $params['postid'], @$params['oldtitle'], $params['oldcontent'], @$params['oldtags'], $userid, '' );

@@ -2,10 +2,8 @@
 
 class qa_html_theme_layer extends qa_html_theme_base
 {
-
 	function post_meta($post, $class, $prefix=null, $separator='<BR/>')
 	{
-// 		echo '<pre>', print_r($post, true), '</pre>';
 		if ( @$post['what_2'] == 'edited' )
 		{
 			$url = qa_path_to_root() . 'revisions/' . $post['raw']['postid'];
