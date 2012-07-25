@@ -8,16 +8,16 @@ require_once QA_INCLUDE_DIR.'qa-app-users.php';
 
 class qa_edit_history
 {
-	private $directory;
-	private $urltoroot;
+	// private $directory;
+	// private $urltoroot;
 
 	private $opt = 'edit_history_active';
 
-	public function load_module($directory, $urltoroot)
-	{
-		$this->directory = $directory;
-		$this->urltoroot = $urltoroot;
-	}
+	// public function load_module($directory, $urltoroot)
+	// {
+	// 	$this->directory = $directory;
+	// 	$this->urltoroot = $urltoroot;
+	// }
 
 	function admin_form( &$qa_content )
 	{
@@ -77,6 +77,7 @@ class qa_edit_history
 		if ( !qa_opt($this->opt) )
 			return;
 
+		// TODO: don't store ninja edits
 		$userid = qa_get_logged_in_userid();
 
 		$sql =
