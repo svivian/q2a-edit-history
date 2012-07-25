@@ -31,3 +31,5 @@ if ( !defined('QA_VERSION') )
 
 
 qa_register_plugin_module('event', 'qa-edit-history.php', 'qa_edit_history', 'Edit History');
+qa_register_plugin_module('page', 'qa-edh-revisions.php', 'qa_edh_revisions', 'Post revisions');
+qa_register_plugin_layer('qa-edh-layer.php', 'Edit History Layer');

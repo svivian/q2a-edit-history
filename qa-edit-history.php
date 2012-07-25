@@ -8,26 +8,17 @@ require_once QA_INCLUDE_DIR.'qa-app-users.php';
 
 class qa_edit_history
 {
-	// private $directory;
-	// private $urltoroot;
+	private $pluginkey = 'edit_history';
+	private $optactive = 'edit_history_active';
 
-	private $opt = 'edit_history_active';
-
-	// public function load_module($directory, $urltoroot)
-	// {
-	// 	$this->directory = $directory;
-	// 	$this->urltoroot = $urltoroot;
-	// }
-
-	function admin_form( &$qa_content )
+	function init_queries( $tableslc )
 	{
-		$saved_msg = '';
+		$tablename = qa_db_add_table_prefix($this->pluginkey);
 
-		if ( qa_clicked('edit_history_activate_button') )
+		if ( !in_array($tablename, $tableslc) )
 		{
-			// create table
-			$sql_create =
-				'CREATE TABLE IF NOT EXISTS ^edit_history ( ' .
+			return
+				'CREATE TABLE IF NOT EXISTS ^'.$this->pluginkey.' ( ' .
 				'`postid` int(10) unsigned NOT NULL, ' .
 				'`edited` datetime NOT NULL, ' .
 				'`title` varchar(800) DEFAULT NULL, ' .
@@ -37,32 +28,69 @@ class qa_edit_history
 				'`reason` varchar(800) DEFAULT NULL, ' .
 				'PRIMARY KEY (`postid`,`edited`) ' .
 				') ENGINE=InnoDB DEFAULT CHARSET=utf8;';
-			$result = qa_db_query_sub($sql_create);
-
-			if ( $result === true )
-			{
-				qa_opt( $this->opt, '1' );
-				$saved_msg = 'Plugin activated!';
-			}
 		}
 
-		if ( !qa_opt($this->opt) )
+		return null;
+	}
+
+	function admin_form( &$qa_content )
+	{
+		$saved_msg = '';
+		$error = null;
+
+		if ( qa_clicked('edit_history_save') )
 		{
-			return array(
-				'buttons' => array(
-					array(
-						'label' => 'Activate Edit History',
-						'tags' => 'name="edit_history_activate_button"',
-						'note' => '(not set up yet)',
-					),
-				),
-			);
+			if ( qa_post_text('eh_active') )
+			{
+				$sql = 'SHOW TABLES LIKE "^'.$this->pluginkey.'"';
+				$result = qa_db_query_sub($sql);
+				$rows = qa_db_read_all_assoc($result);
+				if ( count($rows) > 0 )
+				{
+					qa_opt( $this->optactive, '1' );
+				}
+				else
+				{
+					$error = array(
+						'type' => 'custom',
+						'error' => 'Database table is not set up yet. <a href="' . qa_path('install') . '">Create table</a>',
+					);
+				}
+
+				$saved_msg = 'Changes saved.';
+			}
+			else
+				qa_opt( $this->optactive, '0' );
 		}
 
-		return array(
+		$eh_active = qa_opt($this->optactive);
+
+		$form = array(
 			'ok' => $saved_msg,
+
+			'fields' => array(
+				array(
+					'type' => 'checkbox',
+					'label' => 'Edit History active',
+					'tags' => 'NAME="eh_active"',
+					'value' => $eh_active === '1',
+					'note' => 'Untick to stop tracking post edits.',
+				),
+			),
+
+			'buttons' => array(
+				array(
+					'label' => 'Save changes',
+					'tags' => 'name="edit_history_save"',
+				),
+			),
+
 		);
 
+		if ( $error !== null )
+			$form['fields'][] = $error;
+
+		return $form;
 	}
 
 
@@ -74,10 +102,11 @@ class qa_edit_history
 			return;
 
 		// get config data
-		if ( !qa_opt($this->opt) )
+		if ( !qa_opt($this->optactive) )
 			return;
 
-		// TODO: don't store ninja edits
+		// TODO: don't log edit if it's soon after the last one
+
 		$userid = qa_get_logged_in_userid();
 
 		$sql =
