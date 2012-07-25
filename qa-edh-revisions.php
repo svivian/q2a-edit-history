@@ -67,7 +67,7 @@ class qa_edh_revisions
 			// $revisions[$i]['diff_tags'] = diff_string::compare( qa_html($revisions[$i]['tags']), qa_html($revisions[$i-1]['tags']) );
 		}
 
-		echo '<pre style="text-align:left">', print_r($revisions,true), '</pre>';
+		// echo '<pre style="text-align:left">', print_r($revisions,true), '</pre>';
 
 		// display results
 		$html = '';
