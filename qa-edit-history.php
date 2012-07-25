@@ -83,7 +83,7 @@ class qa_edit_history
 			'INSERT INTO ^edit_history (postid, edited, title, content, tags, userid, reason) ' .
 			'VALUES (#, NOW(), $, $, $, #, $)';
 
-		return qa_db_query_sub( $sql, $params['postid'], $params['oldtitle'], $params['oldcontent'], $params['oldtags'], $userid, '' );
+		return qa_db_query_sub( $sql, $params['postid'], @$params['oldtitle'], $params['oldcontent'], @$params['oldtags'], $userid, '' );
 	}
 
 }
