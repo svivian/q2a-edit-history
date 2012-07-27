@@ -36,23 +36,33 @@ class qa_edh_revisions
 	{
 		require $this->directory.'class.diff-string.php';
 
-		// get postid
+		// get postid (already validated in `match_request`)
 		preg_match( $this->reqmatch, $request, $matches );
 		$postid = $matches[1];
-		if ( !is_numeric($postid) )
-			return;
+
+		// set up page content
+		$qa_content = qa_content_prepare();
+		$qa_content['title'] = 'Edit history for post #'.$postid;
 
 		// get original post
 		$sql = 'SELECT postid, type, userid, format, updated, title, content, tags FROM ^posts WHERE postid=#';
 		$result = qa_db_query_sub( $sql, $postid );
-		$original = qa_db_read_one_assoc( $result );
+		$original = qa_db_read_one_assoc( $result, true );
 		$revisions = array( $original );
+
 
 		// get post revisions
 		$sql = 'SELECT postid, updated, title, content, tags, userid FROM ^edit_history WHERE postid=# ORDER BY updated DESC';
 		$result = qa_db_query_sub( $sql, $postid );
-		// TODO: return 404 if no revisions
 		$revisions = array_merge( $revisions, qa_db_read_all_assoc( $result ) );
+
+		// return 404 if no revisions
+		if ( !$original || count($revisions) <= 1 )
+		{
+			header('HTTP/1.0 404 Not Found');
+			$qa_content['error'] = 'No revisions for this post';
+			return $qa_content;
+		}
 
 		// run diff algorithm
 		$revisions = array_reverse( $revisions );
@@ -83,9 +93,6 @@ class qa_edh_revisions
 			$html .= '  <div>' . nl2br($rev['diff_content']) . '</div>' . "\n";
 			$html .= '</div>' . "\n\n";
 		}
-
-		$qa_content = qa_content_prepare();
-		$qa_content['title'] = 'Edit history for post #'.$postid;
 
 		// prevent search engines indexing revision pages
 		$qh =& $qa_content['head_lines'];
