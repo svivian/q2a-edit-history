@@ -1,6 +1,6 @@
 <?php
 /*
-	Question2Answer Edit History plugin, v0.1
+	Question2Answer Edit History plugin, v0.9
 	License: http://www.gnu.org/licenses/gpl.html
 */
 
@@ -80,7 +80,13 @@ class qa_edh_revisions
 		// echo '<pre style="text-align:left">', print_r($revisions,true), '</pre>';
 
 		// display results
-		$html = '';
+		$post_url = null;
+		if ( $original['type'] == 'Q' )
+			$post_url = qa_q_path_html( $original['postid'], $original['title'] );
+		else if ( $original['type'] == 'A' )
+			$post_url = '';
+
+		$html = $post_url ? '<p><a href="' . $post_url . '">&laquo; Back to post</a></p>' : '';
 		$options = array( 'blockwordspreg' => qa_get_block_words_preg() );
 		// $viewer = qa_load_viewer( $revisions[0]['content'], 'html' );
 

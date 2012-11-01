@@ -1,6 +1,6 @@
 <?php
 /*
-	Question2Answer Edit History plugin, v0.1
+	Question2Answer Edit History plugin, v0.9
 	License: http://www.gnu.org/licenses/gpl.html
 */
 
