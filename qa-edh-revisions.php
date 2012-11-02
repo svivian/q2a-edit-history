@@ -20,7 +20,7 @@ class qa_edh_revisions
 	{
 		return array(
 			array(
-				'title' => 'Post Revisions',
+				'title' => qa_lang_html('edithistory/admin_title'),
 				'request' => 'revisions',
 				'nav' => null, // 'M'=main, 'F'=footer, 'B'=before main, 'O'=opposite main, null=none
 			),
@@ -42,17 +42,17 @@ class qa_edh_revisions
 
 		// set up page content
 		$qa_content = qa_content_prepare();
-		$qa_content['title'] = 'Edit history for post #'.$postid;
+		$qa_content['title'] = qa_lang_html_sub('edithistory/revision_title', $postid);
 
 		// get original post
-		$sql = 'SELECT postid, type, userid, format, updated, title, content, tags FROM ^posts WHERE postid=#';
+		$sql = 'SELECT postid, type, userid, format, UNIX_TIMESTAMP(updated) AS updated, title, content, tags FROM ^posts WHERE postid=#';
 		$result = qa_db_query_sub( $sql, $postid );
 		$original = qa_db_read_one_assoc( $result, true );
 		$revisions = array( $original );
 
 
 		// get post revisions
-		$sql = 'SELECT postid, updated, title, content, tags, userid FROM ^edit_history WHERE postid=# ORDER BY updated DESC';
+		$sql = 'SELECT postid, UNIX_TIMESTAMP(updated) AS updated, title, content, tags, userid FROM ^edit_history WHERE postid=# ORDER BY updated DESC';
 		$result = qa_db_query_sub( $sql, $postid );
 		$revisions = array_merge( $revisions, qa_db_read_all_assoc( $result ) );
 
@@ -60,8 +60,16 @@ class qa_edh_revisions
 		if ( !$original || count($revisions) <= 1 )
 		{
 			header('HTTP/1.0 404 Not Found');
-			$qa_content['error'] = 'No revisions for this post';
+			$qa_content['error'] = qa_lang_html('edithistory/no_revisions');
 			return $qa_content;
+		}
+
+		// censor posts
+		$options = array( 'blockwordspreg' => qa_get_block_words_preg(), 'fulldatedays' => qa_opt('show_full_date_days') );
+		foreach ( $revisions as &$rev )
+		{
+			$rev['title'] = qa_block_words_replace( $rev['title'], $options['blockwordspreg'] );
+			$rev['content'] = qa_block_words_replace( $rev['content'], $options['blockwordspreg'] );
 		}
 
 		// run diff algorithm
@@ -74,10 +82,7 @@ class qa_edh_revisions
 			$rp =& $revisions[$i-1];
 			$rc['diff_title'] = diff_string::compare( qa_html($rp['title']), qa_html($rc['title']) );
 			$rc['diff_content'] = diff_string::compare( qa_html($rp['content']), qa_html($rc['content']) );
-			// $revisions[$i]['diff_tags'] = diff_string::compare( qa_html($revisions[$i]['tags']), qa_html($revisions[$i-1]['tags']) );
 		}
-
-		// echo '<pre style="text-align:left">', print_r($revisions,true), '</pre>';
 
 		// display results
 		$post_url = null;
@@ -86,15 +91,12 @@ class qa_edh_revisions
 		else if ( $original['type'] == 'A' )
 			$post_url = '';
 
-		$html = $post_url ? '<p><a href="' . $post_url . '">&laquo; Back to post</a></p>' : '';
-		$options = array( 'blockwordspreg' => qa_get_block_words_preg() );
-		// $viewer = qa_load_viewer( $revisions[0]['content'], 'html' );
-
+		$html = $post_url ? '<p><a href="' . $post_url . '">&laquo; ' . qa_lang_html('edithistory/back_to_post') . '</a></p>' : '';
 		foreach ( $revisions as $rev )
 		{
-			// $view = qa_viewer_html($rev['diff'], $original['format'], $options);
+			$updated = qa_when_to_html($rev['updated'], $options['fulldatedays']);
 			$html .= '<div class="diff-block">' . "\n";
-			$html .= '  <div class="diff-date">Edited ' . $rev['updated'] . '</div>' . "\n";
+			$html .= '  <div class="diff-date">' . qa_lang_html_sub('edithistory/edited_time', implode('', $updated)) . '</div>' . "\n";
 			$html .= '  <h2>' . $rev['diff_title'] . '</h2>' . "\n";
 			$html .= '  <div>' . nl2br($rev['diff_content']) . '</div>' . "\n";
 			$html .= '</div>' . "\n\n";
@@ -103,8 +105,9 @@ class qa_edh_revisions
 		// prevent search engines indexing revision pages
 		$qh =& $qa_content['head_lines'];
 		$qh[] = '<meta name="robots" content="noindex,follow">';
+		// styles for this page
 		$qh[] = '<style>';
-		$qh[] = '.diff-block { padding-bottom: 20px; margin-bottom: 20px; /*border-bottom: 1px solid #ddd; font: 14px monospace;*/ } ';
+		$qh[] = '.diff-block { padding-bottom: 20px; margin-bottom: 20px; } ';
 		$qh[] = '.diff-date { background: #eee; padding: 2px; margin: 5px 0; } ';
 		$qh[] = 'ins { background-color: #d1e1ad; color: #405a04; text-decoration: none; } ';
 		$qh[] = 'del { background-color: #e5bdb2; color: #a82400; text-decoration: line-through; } ';

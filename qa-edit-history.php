@@ -53,11 +53,11 @@ class qa_edit_history
 				{
 					$error = array(
 						'type' => 'custom',
-						'error' => 'Database table is not set up yet. <a href="' . qa_path('install') . '">Create table</a>',
+						'error' => qa_lang_html('edithistory/admin_notable') . '<a href="' . qa_path('install') . '">' . qa_lang_html('edithistory/admin_create_table') . '</a>',
 					);
 				}
 
-				$saved_msg = 'Changes saved.';
+				$saved_msg = qa_lang_html('admin/options_saved');
 			}
 			else
 				qa_opt( $this->optactive, '0' );
@@ -71,16 +71,16 @@ class qa_edit_history
 			'fields' => array(
 				array(
 					'type' => 'checkbox',
-					'label' => 'Edit History active',
+					'label' => qa_lang_html('edithistory/admin_active'),
 					'tags' => 'NAME="eh_active"',
 					'value' => $eh_active === '1',
-					'note' => 'Untick to stop tracking post edits.',
+					'note' => qa_lang_html('edithistory/admin_active_note'),
 				),
 			),
 
 			'buttons' => array(
 				array(
-					'label' => 'Save changes',
+					'label' => qa_lang_html('admin/save_options_button'),
 					'tags' => 'name="edit_history_save"',
 				),
 			),
