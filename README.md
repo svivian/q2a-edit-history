@@ -14,8 +14,8 @@ Installation & Usage
 
 3. UPDATE: a `noindex` meta tag is included on the revisions pages by default, but you can still block the pages with robots.txt if you prefer. ~~I recommend blocking search engine access to the post revisions, since it could count as duplicate content. Simply add the following two lines to your robots.txt file (where `qa` is your Q2A subfolder if applicable):~~
 
-    User-agent: *
-    Disallow: /qa/revisions/
+		User-agent: *
+		Disallow: /qa/revisions/
 
 
 Roadmap
