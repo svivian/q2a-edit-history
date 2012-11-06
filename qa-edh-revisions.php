@@ -20,7 +20,7 @@ class qa_edh_revisions
 	{
 		return array(
 			array(
-				'title' => qa_lang_html('edithistory/admin_title'),
+				'title' => 'Edit History',
 				'request' => 'revisions',
 				'nav' => null, // 'M'=main, 'F'=footer, 'B'=before main, 'O'=opposite main, null=none
 			),
@@ -115,10 +115,17 @@ class qa_edh_revisions
 		foreach ( $revisions as $i=>$rev )
 		{
 			$updated = implode( '', qa_when_to_html($rev['edited'], $options['fulldatedays']) );
-			$edited_when_by = strtr(qa_lang_html('edithistory/edited_when_by'), array(
-				'^1' => $updated,
-				'^2' => $rev['editedby'],
-			));
+			if ( $i > 0 )
+			{
+				$edited_when_by = strtr(qa_lang_html('edithistory/edited_when_by'), array(
+					'^1' => $updated,
+					'^2' => $rev['editedby'],
+				));
+			}
+			else
+			{
+				$edited_when_by = qa_lang_html_sub('edithistory/original_post_by', $rev['editedby']);
+			}
 
 			$html .= '<div class="diff-block">' . "\n";
 			$html .= '  <div class="diff-date">' . $edited_when_by . '</div>' . "\n";
