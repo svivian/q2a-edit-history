@@ -33,6 +33,12 @@ class qa_edh_revisions
 	}
 
 	function process_request( $request )
+/*
+	Post edits are stored in a special way. The `qa_posts` tables contains the latest version displayed (obviously).
+	The `qa_edit_history` table stores each previous revision, with the time it was updated to the later one.
+	So each time applies to the next revision, with `qa_posts.created` being when the first revision from
+	`qa_edit_history` was posted.
+*/
 	{
 		require $this->directory.'class.diff-string.php';
 
@@ -45,14 +51,20 @@ class qa_edh_revisions
 		$qa_content['title'] = qa_lang_html_sub('edithistory/revision_title', $postid);
 
 		// get original post
-		$sql = 'SELECT postid, type, userid, format, UNIX_TIMESTAMP(updated) AS updated, title, content, tags FROM ^posts WHERE postid=#';
+		$sql =
+			'SELECT p.postid, p.type, p.userid, u.handle, p.format, UNIX_TIMESTAMP(p.created) AS updated, p.title, p.content, p.tags
+			 FROM ^posts p LEFT JOIN ^users u ON u.userid=p.userid
+			 WHERE p.postid=#';
 		$result = qa_db_query_sub( $sql, $postid );
 		$original = qa_db_read_one_assoc( $result, true );
 		$revisions = array( $original );
 
-
 		// get post revisions
-		$sql = 'SELECT postid, UNIX_TIMESTAMP(updated) AS updated, title, content, tags, userid FROM ^edit_history WHERE postid=# ORDER BY updated DESC';
+		$sql =
+			'SELECT p.postid, p.userid, u.handle, UNIX_TIMESTAMP(p.updated) AS updated, p.title, p.content, p.tags
+			 FROM ^edit_history p LEFT JOIN ^users u ON u.userid=p.userid
+			 WHERE p.postid=#
+			 ORDER BY p.updated DESC';
 		$result = qa_db_query_sub( $sql, $postid );
 		$revisions = array_merge( $revisions, qa_db_read_all_assoc( $result ) );
 
@@ -76,13 +88,21 @@ class qa_edh_revisions
 		$revisions = array_reverse( $revisions );
 		$revisions[0]['diff_title'] = $revisions[0]['title'];
 		$revisions[0]['diff_content'] = $revisions[0]['content'];
-		for ( $i = 1, $len = count($revisions); $i < $len; $i++ )
+		$len = count($revisions);
+
+		for ( $i = 1; $i < $len; $i++ )
 		{
 			$rc =& $revisions[$i];
 			$rp =& $revisions[$i-1];
 			$rc['diff_title'] = diff_string::compare( qa_html($rp['title']), qa_html($rc['title']) );
 			$rc['diff_content'] = diff_string::compare( qa_html($rp['content']), qa_html($rc['content']) );
+			$rc['edited'] = $rp['updated'];
+			$rc['editedby'] = $rp['handle'];
 		}
+		$revisions[0]['edited'] = $revisions[$len-1]['updated'];
+		$revisions[0]['editedby'] = $revisions[$len-1]['handle'];
+
+		// $revisions = array_reverse( $revisions );
 
 		// display results
 		$post_url = null;
@@ -92,11 +112,16 @@ class qa_edh_revisions
 			$post_url = '';
 
 		$html = $post_url ? '<p><a href="' . $post_url . '">&laquo; ' . qa_lang_html('edithistory/back_to_post') . '</a></p>' : '';
-		foreach ( $revisions as $rev )
+		foreach ( $revisions as $i=>$rev )
 		{
-			$updated = qa_when_to_html($rev['updated'], $options['fulldatedays']);
+			$updated = implode( '', qa_when_to_html($rev['edited'], $options['fulldatedays']) );
+			$edited_when_by = strtr(qa_lang_html('edithistory/edited_when_by'), array(
+				'^1' => $updated,
+				'^2' => $rev['editedby'],
+			));
+
 			$html .= '<div class="diff-block">' . "\n";
-			$html .= '  <div class="diff-date">' . qa_lang_html_sub('edithistory/edited_time', implode('', $updated)) . '</div>' . "\n";
+			$html .= '  <div class="diff-date">' . $edited_when_by . '</div>' . "\n";
 			$html .= '  <h2>' . $rev['diff_title'] . '</h2>' . "\n";
 			$html .= '  <div>' . nl2br($rev['diff_content']) . '</div>' . "\n";
 			$html .= '</div>' . "\n\n";

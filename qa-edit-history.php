@@ -102,11 +102,11 @@ class qa_edit_history
 			return;
 
 		// question title or content was not changed
-		if ( $event == 'q_edit' && $params['title'] == $params['oldtitle'] && $params['content'] == $params['oldcontent'] )
+		if ( $event == 'q_edit' && $params['title'] === $params['oldtitle'] && $params['content'] === $params['oldcontent'] )
 			return;
 
 		// answer content was not changed
-		if ( $event == 'a_edit' && $params['content'] == $params['oldcontent'] )
+		if ( $event == 'a_edit' && $params['content'] === $params['oldcontent'] )
 			return;
 
 		// check if tracking is active
