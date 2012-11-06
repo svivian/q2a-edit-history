@@ -12,18 +12,11 @@ class qa_html_theme_layer extends qa_html_theme_base
 	{
 		if ( $this->template == 'question' )
 		{
-			// grab a list of all posts on this page
+			// grab a list of all Q/A posts on this page
 			$postids = array();
 			$postids[] = $this->content['q_view']['raw']['postid'];
-			foreach ( $this->content['q_view']['c_list']['cs'] as $comm )
-				$postids[] = $comm['raw']['postid'];
-
 			foreach ( $this->content['a_list']['as'] as $answ )
-			{
 				$postids[] = $answ['raw']['postid'];
-				foreach ( $answ['c_list']['cs'] as $comm )
-					$postids[] = $comm['raw']['postid'];
-			}
 
 			// check for revisions in these posts
 			$sql = 'SELECT DISTINCT postid FROM ^edit_history WHERE postid IN (' . implode(',', $postids) . ') GROUP BY postid';
