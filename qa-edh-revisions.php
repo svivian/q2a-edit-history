@@ -149,6 +149,10 @@ class qa_edh_revisions
 			else
 			{
 				$edited_when_by = qa_lang_html_sub('edithistory/original_post_by', $rev['editedby']);
+				$edited_when_by = strtr(qa_lang_html('edithistory/original_post_by'), array(
+					'^1' => $updated,
+					'^2' => $rev['editedby'],
+				));
 			}
 
 			$html .= '<div class="diff-block">' . "\n";

@@ -11,7 +11,7 @@ return array(
 	'no_revisions' => 'No revisions for this post',
 	'back_to_post' => 'Back to post',
 	'edited_when_by' => 'Edited ^1 by ^2',
-	'original_post_by' => 'Original post by ^',
+	'original_post_by' => 'Posted ^1 by ^2',
 
 	'admin_title' => 'Post Revisions',
 	'admin_notable' => 'Database table is not set up yet.',

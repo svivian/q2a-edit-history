@@ -113,12 +113,17 @@ class qa_edit_history
 		if ( !qa_opt($this->optactive) )
 			return;
 
-		// TODO: don't log ninja edits
-		// $params['oldquestion']['updated'];
-		// $params['oldanswer']['updated'];
+		// don't log 'ninja' edits (within 5 minutes)
+		$now = time();
+		$oldkey = $event == 'q_edit' ? 'oldquestion' : 'oldanswer';
+		$lastupdate = $params[$oldkey]['updated'];
+		// new posts have a NULL updated time
+		if ( $lastupdate == null )
+			$lastupdate = $params[$oldkey]['created'];
+		if ( abs($now-$lastupdate) < 300 )
+			return;
 
 		$userid = qa_get_logged_in_userid();
-
 		$sql =
 			'INSERT INTO ^edit_history (postid, updated, title, content, tags, userid, reason) ' .
 			'VALUES (#, NOW(), $, $, $, #, $)';
