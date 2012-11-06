@@ -8,31 +8,32 @@ class qa_edh_revisions
 {
 	private $directory;
 	private $urltoroot;
-	private $reqmatch = '#revisions/([0-9]+)#';
+	private $reqmatch = '#revisions(/([0-9]+))?#';
 
-	function load_module( $directory, $urltoroot )
+	public function load_module( $directory, $urltoroot )
 	{
 		$this->directory = $directory;
 		$this->urltoroot = $urltoroot;
 	}
 
-	function suggest_requests() // for display in admin interface
+	public function suggest_requests()
 	{
 		return array(
 			array(
 				'title' => 'Edit History',
 				'request' => 'revisions',
-				'nav' => null, // 'M'=main, 'F'=footer, 'B'=before main, 'O'=opposite main, null=none
+				'nav' => null,
 			),
 		);
 	}
 
-	function match_request( $request )
+	public function match_request( $request )
 	{
+		// validates the postid so we don't need to do this later
 		return preg_match( $this->reqmatch, $request ) > 0;
 	}
 
-	function process_request( $request )
+	public function process_request( $request )
 /*
 	Post edits are stored in a special way. The `qa_posts` tables contains the latest version displayed (obviously).
 	The `qa_edit_history` table stores each previous revision, with the time it was updated to the later one.
@@ -41,13 +42,36 @@ class qa_edh_revisions
 */
 	{
 		require $this->directory.'class.diff-string.php';
-
-		// get postid (already validated in `match_request`)
-		preg_match( $this->reqmatch, $request, $matches );
-		$postid = $matches[1];
-
-		// set up page content
 		$qa_content = qa_content_prepare();
+		preg_match( $this->reqmatch, $request, $matches );
+
+		if ( isset($matches[2]) )
+		{
+			// post revisions: list all edits to this post
+			$this->post_revisions( $qa_content, $matches[2] );
+		}
+		else
+		{
+			// main page: list recent revisions
+			$this->recent_edits( $qa_content );
+		}
+
+		return $qa_content;
+	}
+
+	// Display all recent edits
+	private function recent_edits( &$qa_content )
+	{
+		$qa_content['title'] = qa_lang_html('edithistory/main_title');
+
+		$qa_content['custom'] = '<p>This page will list posts that have been edited recently.</p>';
+
+
+	}
+
+	// Display all the edits made to a post
+	private function post_revisions( &$qa_content, $postid )
+	{
 		$qa_content['title'] = qa_lang_html_sub('edithistory/revision_title', $postid);
 
 		// get original post
@@ -146,7 +170,6 @@ class qa_edh_revisions
 		$qh[] = '</style>';
 
 		$qa_content['custom'] = $html;
-		return $qa_content;
 	}
 
 }

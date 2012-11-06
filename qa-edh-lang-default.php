@@ -5,7 +5,9 @@
 */
 
 return array(
+	'main_title' => 'Recent post edits',
 	'revision_title' => 'Edit history for post #^',
+
 	'no_revisions' => 'No revisions for this post',
 	'back_to_post' => 'Back to post',
 	'edited_when_by' => 'Edited ^1 by ^2',
