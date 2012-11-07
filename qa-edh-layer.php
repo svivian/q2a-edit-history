@@ -19,7 +19,7 @@ class qa_html_theme_layer extends qa_html_theme_base
 				$postids[] = $answ['raw']['postid'];
 
 			// check for revisions in these posts
-			$sql = 'SELECT DISTINCT postid FROM ^edit_history WHERE postid IN (' . implode(',', $postids) . ') GROUP BY postid';
+			$sql = 'SELECT DISTINCT postid FROM ^edit_history WHERE postid IN (' . implode(', ', $postids) . ')';
 			$this->rev_postids = qa_db_read_all_values( qa_db_query_sub($sql) );
 		}
 
