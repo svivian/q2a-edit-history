@@ -10,11 +10,10 @@ class qa_html_theme_layer extends qa_html_theme_base
 
 	function doctype()
 	{
-		if ( $this->template == 'question' )
+		if ( $this->template == 'question' && isset($this->content['q_view']) && isset($this->content['a_list']) )
 		{
 			// grab a list of all Q/A posts on this page
-			$postids = array();
-			$postids[] = $this->content['q_view']['raw']['postid'];
+			$postids = array( $this->content['q_view']['raw']['postid'] );
 			foreach ( $this->content['a_list']['as'] as $answ )
 				$postids[] = $answ['raw']['postid'];
 
