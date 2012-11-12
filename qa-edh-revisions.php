@@ -168,7 +168,7 @@ class qa_edh_revisions
 		// styles for this page
 		$qh[] = '<style>';
 		$qh[] = '.diff-block { padding-bottom: 20px; margin-bottom: 20px; } ';
-		$qh[] = '.diff-date { background: #eee; padding: 2px; margin: 5px 0; } ';
+		$qh[] = '.diff-date { margin: 5px 0; padding: 3px 6px; background: #eee; color: #000; } ';
 		$qh[] = 'ins { background-color: #d1e1ad; color: #405a04; text-decoration: none; } ';
 		$qh[] = 'del { background-color: #e5bdb2; color: #a82400; text-decoration: line-through; } ';
 		$qh[] = '</style>';
