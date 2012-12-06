@@ -48,7 +48,7 @@ class qa_edh_revisions
 		if ( isset($matches[2]) )
 		{
 			// post revisions: list all edits to this post
-			$this->post_revisions( $qa_content, $matches[2] );
+			$this->post_revisions( $qa_content, qa_html($matches[2]) );
 		}
 		else
 		{
@@ -63,13 +63,10 @@ class qa_edh_revisions
 	private function recent_edits( &$qa_content )
 	{
 		$qa_content['title'] = qa_lang_html('edithistory/main_title');
-
 		$qa_content['custom'] = '<p>This page will list posts that have been edited recently.</p>';
-
-
 	}
 
-	// Display all the edits made to a post
+	// Display all the edits made to a post ($postid already validated)
 	private function post_revisions( &$qa_content, $postid )
 	{
 		$qa_content['title'] = qa_lang_html_sub('edithistory/revision_title', $postid);
@@ -121,10 +118,10 @@ class qa_edh_revisions
 			$rc['diff_title'] = diff_string::compare( qa_html($rp['title']), qa_html($rc['title']) );
 			$rc['diff_content'] = diff_string::compare( qa_html($rp['content']), qa_html($rc['content']) );
 			$rc['edited'] = $rp['updated'];
-			$rc['editedby'] = $rp['handle'];
+			$rc['editedby'] = $this->user_handle( $rp['handle'] );
 		}
 		$revisions[0]['edited'] = $revisions[$len-1]['updated'];
-		$revisions[0]['editedby'] = $revisions[$len-1]['handle'];
+		$revisions[0]['editedby'] = $this->user_handle( $revisions[$len-1]['handle'] );
 
 		// $revisions = array_reverse( $revisions );
 
@@ -174,6 +171,11 @@ class qa_edh_revisions
 		$qh[] = '</style>';
 
 		$qa_content['custom'] = $html;
+	}
+
+	private function user_handle($handle)
+	{
+		return $handle === null ? qa_lang_html('main/anonymous') : qa_html($handle);
 	}
 
 }
