@@ -98,6 +98,7 @@ class qa_edh_revisions
 		}
 
 		// censor posts
+		require_once QA_INCLUDE_DIR.'qa-util-string.php';
 		$options = array( 'blockwordspreg' => qa_get_block_words_preg(), 'fulldatedays' => qa_opt('show_full_date_days') );
 		foreach ( $revisions as &$rev )
 		{
