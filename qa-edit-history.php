@@ -9,7 +9,8 @@ require_once QA_INCLUDE_DIR.'qa-app-users.php';
 class qa_edit_history
 {
 	private $pluginkey = 'edit_history';
-	private $optactive = 'edit_history_active';
+	private $opt_active = 'edit_history_active';
+	private $opt_perms = 'edit_history_view_perms';
 
 	function init_queries( $tableslc )
 	{
@@ -46,9 +47,7 @@ class qa_edit_history
 				$result = qa_db_query_sub($sql);
 				$rows = qa_db_read_all_assoc($result);
 				if ( count($rows) > 0 )
-				{
-					qa_opt( $this->optactive, '1' );
-				}
+					qa_opt( $this->opt_active, '1' );
 				else
 				{
 					$error = array(
@@ -60,22 +59,43 @@ class qa_edit_history
 				$saved_msg = qa_lang_html('admin/options_saved');
 			}
 			else
-				qa_opt( $this->optactive, '0' );
+				qa_opt( $this->opt_active, '0' );
+
+			qa_opt($this->opt_perms, qa_post_text('ua_user_perms'));
 		}
 
-		$eh_active = qa_opt($this->optactive);
+		// plugin state
+		$eh_active = qa_opt($this->opt_active);
+		$active_field = array(
+			'type' => 'checkbox',
+			'label' => qa_lang_html('edithistory/admin_active'),
+			'tags' => 'NAME="eh_active"',
+			'value' => $eh_active === '1',
+			'note' => qa_lang_html('edithistory/admin_active_note'),
+		);
+
+		// get list of user permissions
+		require_once QA_INCLUDE_DIR.'qa-app-options.php';
+		$permitoptions = qa_admin_permit_options(QA_PERMIT_ALL, QA_PERMIT_SUPERS, false, false);
+		$view_perms = qa_opt($this->opt_perms);
+		$selected = isset( $permitoptions[$view_perms] ) ? $permitoptions[$view_perms] : QA_PERMIT_ALL;
+
+		$perms_field = array(
+			'type' => 'select',
+			'label' => qa_lang_html('edithistory/admin_perms'),
+			'tags' => 'NAME="ua_user_perms"',
+			'options' => $permitoptions,
+			'value' => $selected,
+			'note' => qa_lang_html('edithistory/admin_perms_note'),
+		);
 
 		$form = array(
 			'ok' => $saved_msg,
+			'style' => 'wide',
 
 			'fields' => array(
-				array(
-					'type' => 'checkbox',
-					'label' => qa_lang_html('edithistory/admin_active'),
-					'tags' => 'NAME="eh_active"',
-					'value' => $eh_active === '1',
-					'note' => qa_lang_html('edithistory/admin_active_note'),
-				),
+				$active_field,
+				$perms_field,
 			),
 
 			'buttons' => array(
@@ -110,7 +130,7 @@ class qa_edit_history
 			return;
 
 		// check if tracking is active
-		if ( !qa_opt($this->optactive) )
+		if ( !qa_opt($this->opt_active) )
 			return;
 
 		// don't log 'ninja' edits (within 5 minutes)

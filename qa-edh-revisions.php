@@ -8,7 +8,7 @@ class qa_edh_revisions
 {
 	private $directory;
 	private $urltoroot;
-	private $reqmatch = '#revisions(/([0-9]+))?#';
+	private $reqmatch = '#revisions(/([0-9]+))?$#';
 
 	public function load_module( $directory, $urltoroot )
 	{
@@ -70,6 +70,19 @@ class qa_edh_revisions
 	private function post_revisions( &$qa_content, $postid )
 	{
 		$qa_content['title'] = qa_lang_html_sub('edithistory/revision_title', $postid);
+
+		// check user is allowed to view edit history
+		$error = qa_edit_history_perms();
+		if ( $error === 'login' )
+		{
+			$qa_content['error'] = qa_insert_login_links( qa_lang_html('edithistory/need_login'), qa_request() );
+			return;
+		}
+		else if ( $error !== false )
+		{
+			$qa_content['error'] = qa_lang_html('edithistory/no_user_perms');
+			return;
+		}
 
 		// get original post
 		$sql =

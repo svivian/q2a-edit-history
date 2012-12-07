@@ -10,7 +10,11 @@ class qa_html_theme_layer extends qa_html_theme_base
 
 	function doctype()
 	{
-		if ( $this->template == 'question' && isset($this->content['q_view']) && isset($this->content['a_list']) )
+		$q_tmpl = $this->template == 'question';
+		$qa_exists = isset($this->content['q_view']) && isset($this->content['a_list']);
+		$user_permit = qa_edit_history_perms() === false;
+
+		if ( $q_tmpl && $qa_exists && $user_permit )
 		{
 			// grab a list of all Q/A posts on this page
 			$postids = array( $this->content['q_view']['raw']['postid'] );
