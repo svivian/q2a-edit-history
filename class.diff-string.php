@@ -1,7 +1,11 @@
 <?php
+/*
+	Question2Answer Edit History plugin
+	License: http://www.gnu.org/licenses/gpl.html
+*/
+
 
 // Usage: $html = diff_string::compare( $original, $new )
-
 class diff_string
 {
 	// ($o,$n) are strings
