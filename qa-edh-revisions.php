@@ -129,8 +129,8 @@ class qa_edh_revisions
 		{
 			$rc =& $revisions[$i];
 			$rp =& $revisions[$i-1];
-			$rc['diff_title'] = diff_string::compare( qa_html($rp['title']), qa_html($rc['title']) );
-			$rc['diff_content'] = diff_string::compare( qa_html($rp['content']), qa_html($rc['content']) );
+			$rc['diff_title'] = (new diff_string)->compare( qa_html($rp['title']), qa_html($rc['title']) );
+			$rc['diff_content'] = (new diff_string)->compare( qa_html($rp['content']), qa_html($rc['content']) );
 			$rc['edited'] = $rp['updated'];
 			$rc['editedby'] = $this->user_handle( $rp['handle'] );
 		}
