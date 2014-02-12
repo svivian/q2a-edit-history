@@ -13,9 +13,6 @@ return array(
 	'edited_when_by' => 'Edited ^1 by ^2',
 	'original_post_by' => 'Posted ^1 by ^2',
 
-	'need_login' => 'Please ^1log in^2 or ^3register^4 to view this page.',
-	'no_user_perms' => 'Sorry, you do not have permission to view this page.',
-
 	'admin_title' => 'Post Revisions',
 	'admin_notable' => 'Database table is not set up yet.',
 	'admin_create_table' => 'Create table',
@@ -27,5 +24,8 @@ return array(
 
 	'ninja_edit_time' => 'Time between two accepted edit',
 	'seconds' => 'seconds',
-	'ninja_edit_time_note' => 'If two consecutive edits occurs in this period of time, the second one overrides first.',
+	'ninja_edit_time_note' => 'If two consecutive edits occurs in this period of time, the second one overrides first. (input 0 to disable this option)',
+	'view_permission' => 'Minimum level to view',
+	'view_permission_note' => 'Which level of users can see edit history records.',
+	'permission_error' => 'Sorry, you do not have permissions to view edit history records.',
 );

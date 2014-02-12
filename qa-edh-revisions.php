@@ -71,18 +71,11 @@ class qa_edh_revisions
 	{
 		$qa_content['title'] = qa_lang_html_sub('edithistory/revision_title', $postid);
 
-		// check user is allowed to view edit history
-		$error = qa_edit_history_perms();
-		if ( $error === 'login' )
+		if (qa_user_permit_error('edit_history_view_permission'))
 		{
-			$qa_content['error'] = qa_insert_login_links( qa_lang_html('edithistory/need_login'), qa_request() );
-			return;
-		}
-		else if ( $error !== false )
-		{
-			$qa_content['error'] = qa_lang_html('edithistory/no_user_perms');
-			return;
-		}
+			$qa_content['error'] = qa_lang_html('edithistory/permission_error');
+			return null;
+		}			
 
 		// get original post
 		$sql =

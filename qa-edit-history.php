@@ -11,6 +11,7 @@ class qa_edit_history
 	private $pluginkey = 'edit_history';
 	private $optactive = 'edit_history_active';
 	private $ninja_edit_time = 'edit_history_NET';
+	private $view_permission = 'edit_history_view_permission';
 
 	function init_queries( $tableslc )
 	{
@@ -38,6 +39,7 @@ class qa_edit_history
 	{
 		$saved_msg = '';
 		$error = null;
+		$permitoptions = qa_admin_permit_options(QA_PERMIT_ALL, QA_PERMIT_SUPERS, false, false);
 
 		if ( qa_clicked('edit_history_save') )
 		{
@@ -62,11 +64,13 @@ class qa_edit_history
 			}
 			else
 				qa_opt( $this->optactive, '0' );
-			qa_opt( $this->ninja_edit_time, qa_post_text('ninja_edit_time') );
+			qa_opt( $this->ninja_edit_time, (int)qa_post_text('ninja_edit_time') );
+			qa_opt( $this->view_permission, (int)qa_post_text('view_permission') );
 		}
 
 		$eh_active = qa_opt($this->optactive);
 		$ninja_edit_time = qa_opt($this->ninja_edit_time);
+		$view_permission = qa_opt($this->view_permission);
 
 		$form = array(
 			'ok' => $saved_msg,
@@ -86,6 +90,14 @@ class qa_edit_history
 					'tags' => 'NAME="ninja_edit_time"',
 					'value' => $ninja_edit_time,
 					'note' => qa_lang_html('edithistory/ninja_edit_time_note'),
+				),
+				array(
+					'type' => 'select',
+					'label' => qa_lang_html('edithistory/view_permission'),
+					'tags' => 'NAME="view_permission"',
+					'value' =>  @$permitoptions[$view_permission],
+					'options' => $permitoptions,
+					'note' => qa_lang_html('edithistory/view_permission_note'),
 				),
 			),
 
@@ -131,7 +143,7 @@ class qa_edit_history
 		// new posts have a NULL updated time
 		if ( $lastupdate == null )
 			$lastupdate = $params[$oldkey]['created'];
-		if ( abs($now-$lastupdate) < qa_opt('edit_history_NET') )
+		if ( qa_opt('edit_history_NET') != 0 && (abs($now-$lastupdate) < qa_opt('edit_history_NET')) )
 			return;
 
 		$userid = qa_get_logged_in_userid();

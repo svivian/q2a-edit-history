@@ -3,8 +3,8 @@
 	Plugin Name: Edit History
 	Plugin URI: https://github.com/ElephantsGroup/q2a-edit-history
 	Plugin Description: Edit History plugin for Q2A
-	Plugin Version: 1.1.1
-	Plugin Date: 2014-02-12
+	Plugin Version: 1.1.2
+	Plugin Date: 2014-02-13
 	Plugin Author: Scott Vivian
 	Plugin Author URI: http://codelair.co.uk/
 	Plugin License: GPLv3
@@ -35,16 +35,3 @@ qa_register_plugin_module('event', 'qa-edit-history.php', 'qa_edit_history', 'Ed
 qa_register_plugin_module('page', 'qa-edh-revisions.php', 'qa_edh_revisions', 'Post revisions');
 qa_register_plugin_layer('qa-edh-layer.php', 'Edit History Layer');
 qa_register_plugin_phrases('qa-edh-lang-*.php', 'edithistory');
-
-
-
-// checks if the current user is allowed to view edit history
-function qa_edit_history_perms()
-{
-	$permit = qa_opt('edit_history_view_perms');
-	$userid = qa_get_logged_in_userid();
-	$userlevel = qa_get_logged_in_level();
-	$userflags = qa_get_logged_in_flags();
-
-	return qa_permit_value_error($permit, $userid, $userlevel, $userflags);
-}
