@@ -5,7 +5,7 @@
 */
 
 
-// Usage: $html = diff_string::compare( $original, $new )
+// Usage: $html = (new diff_string)->compare( $original, $new )
 class diff_string
 {
 	// ($o,$n) are strings
