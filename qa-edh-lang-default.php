@@ -24,4 +24,8 @@ return array(
 	'admin_active_note' => 'Untick to stop tracking post edits.',
 	'admin_perms' => 'Edit History visible for',
 	'admin_perms_note' => 'User level allowed to see post revisions.',
+
+	'ninja_edit_time' => 'Time between two accepted edit',
+	'seconds' => 'seconds',
+	'ninja_edit_time_note' => 'If two consecutive edits occurs in this period of time, the second one overrides first.',
 );
