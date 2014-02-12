@@ -9,8 +9,8 @@ require_once QA_INCLUDE_DIR.'qa-app-users.php';
 class qa_edit_history
 {
 	private $pluginkey = 'edit_history';
-	private $opt_active = 'edit_history_active';
-	private $opt_perms = 'edit_history_view_perms';
+	private $optactive = 'edit_history_active';
+	private $ninja_edit_time = 'edit_history_NET';
 
 	function init_queries( $tableslc )
 	{
@@ -47,7 +47,9 @@ class qa_edit_history
 				$result = qa_db_query_sub($sql);
 				$rows = qa_db_read_all_assoc($result);
 				if ( count($rows) > 0 )
-					qa_opt( $this->opt_active, '1' );
+				{
+					qa_opt( $this->optactive, '1' );
+				}
 				else
 				{
 					$error = array(
@@ -59,43 +61,32 @@ class qa_edit_history
 				$saved_msg = qa_lang_html('admin/options_saved');
 			}
 			else
-				qa_opt( $this->opt_active, '0' );
-
-			qa_opt($this->opt_perms, qa_post_text('ua_user_perms'));
+				qa_opt( $this->optactive, '0' );
+			qa_opt( $this->ninja_edit_time, qa_post_text('ninja_edit_time') );
 		}
 
-		// plugin state
-		$eh_active = qa_opt($this->opt_active);
-		$active_field = array(
-			'type' => 'checkbox',
-			'label' => qa_lang_html('edithistory/admin_active'),
-			'tags' => 'NAME="eh_active"',
-			'value' => $eh_active === '1',
-			'note' => qa_lang_html('edithistory/admin_active_note'),
-		);
-
-		// get list of user permissions
-		require_once QA_INCLUDE_DIR.'qa-app-options.php';
-		$permitoptions = qa_admin_permit_options(QA_PERMIT_ALL, QA_PERMIT_SUPERS, false, false);
-		$view_perms = qa_opt($this->opt_perms);
-		$selected = isset( $permitoptions[$view_perms] ) ? $permitoptions[$view_perms] : QA_PERMIT_ALL;
-
-		$perms_field = array(
-			'type' => 'select',
-			'label' => qa_lang_html('edithistory/admin_perms'),
-			'tags' => 'NAME="ua_user_perms"',
-			'options' => $permitoptions,
-			'value' => $selected,
-			'note' => qa_lang_html('edithistory/admin_perms_note'),
-		);
+		$eh_active = qa_opt($this->optactive);
+		$ninja_edit_time = qa_opt($this->ninja_edit_time);
 
 		$form = array(
 			'ok' => $saved_msg,
-			'style' => 'wide',
 
 			'fields' => array(
-				$active_field,
-				$perms_field,
+				array(
+					'type' => 'checkbox',
+					'label' => qa_lang_html('edithistory/admin_active'),
+					'tags' => 'NAME="eh_active"',
+					'value' => $eh_active === '1',
+					'note' => qa_lang_html('edithistory/admin_active_note'),
+				),
+				array(
+					'type' => 'number',
+					'label' => qa_lang_html('edithistory/ninja_edit_time'),
+					'suffix' => qa_lang_html('edithistory/seconds'),
+					'tags' => 'NAME="ninja_edit_time"',
+					'value' => $ninja_edit_time,
+					'note' => qa_lang_html('edithistory/ninja_edit_time_note'),
+				),
 			),
 
 			'buttons' => array(
@@ -130,7 +121,7 @@ class qa_edit_history
 			return;
 
 		// check if tracking is active
-		if ( !qa_opt($this->opt_active) )
+		if ( !qa_opt($this->optactive) )
 			return;
 
 		// don't log 'ninja' edits (within 5 minutes)
@@ -140,7 +131,7 @@ class qa_edit_history
 		// new posts have a NULL updated time
 		if ( $lastupdate == null )
 			$lastupdate = $params[$oldkey]['created'];
-		if ( abs($now-$lastupdate) < 300 )
+		if ( abs($now-$lastupdate) < qa_opt('edit_history_NET') )
 			return;
 
 		$userid = qa_get_logged_in_userid();
