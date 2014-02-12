@@ -12,7 +12,6 @@ class qa_html_theme_layer extends qa_html_theme_base
 	{
 		$q_tmpl = $this->template == 'question';
 		$qa_exists = isset($this->content['q_view']) && isset($this->content['a_list']);
-		$user_permit = qa_edit_history_perms() === false;
 
 		if ( $q_tmpl && $qa_exists && $user_permit )
 		{
