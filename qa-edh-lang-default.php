@@ -28,4 +28,8 @@ return array(
 	'view_permission' => 'Minimum level to view',
 	'view_permission_note' => 'Which level of users can see edit history records.',
 	'permission_error' => 'Sorry, you do not have permissions to view edit history records.',
+	'enabled_external_users' => 'Enable external users',
+	'external_users_table' => 'External users table name',
+	'external_users_table_key' => 'External users table key name',
+	'external_users_table_handle' => 'External users table handle field name',
 );

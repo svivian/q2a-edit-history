@@ -1,15 +1,16 @@
 <?php
 /*
-	Plugin Name: Edit History
-	Plugin URI: https://github.com/ElephantsGroup/q2a-edit-history
-	Plugin Description: Edit History plugin for Q2A
-	Plugin Version: 1.1.2
-	Plugin Date: 2014-02-13
+	Plugin Name: تاریخچه‌ی ویرایش
+	Plugin URI: http://qanet.ir/files/modules/edit-history/versions/edit-history-current.zip
+	Plugin Update Check URI: http://qanet.ir/files/modules/edit-history/edit-history.php
+	Plugin Description: افزونه‌ی تاریخچه‌ی ویرایش
+	Plugin Version: 1.2.0
+	Plugin Date: 2014-02-14
 	Plugin Author: Scott Vivian
 	Plugin Author URI: http://codelair.co.uk/
 	Plugin License: GPLv3
 	Plugin Minimum Question2Answer Version: 1.4
-	Plugin Update Check URI: https://raw.github.com/ElephantsGroup/q2a-edit-history/master/qa-plugin.php
+	Plugin Traslator: Jalal Jaberi
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -31,7 +32,7 @@ if ( !defined('QA_VERSION') )
 }
 
 
-qa_register_plugin_module('event', 'qa-edit-history.php', 'qa_edit_history', 'Edit History');
-qa_register_plugin_module('page', 'qa-edh-revisions.php', 'qa_edh_revisions', 'Post revisions');
-qa_register_plugin_layer('qa-edh-layer.php', 'Edit History Layer');
+qa_register_plugin_module('event', 'qa-edit-history.php', 'qa_edit_history', 'تاریخچه‌ی ویرایش');
+qa_register_plugin_module('page', 'qa-edh-revisions.php', 'qa_edh_revisions', 'بازبینی‌های ارسال');
+qa_register_plugin_layer('qa-edh-layer.php', 'لایه‌ی تاریخچه‌ی ویرایش');
 qa_register_plugin_phrases('qa-edh-lang-*.php', 'edithistory');

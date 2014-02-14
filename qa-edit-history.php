@@ -12,6 +12,10 @@ class qa_edit_history
 	private $optactive = 'edit_history_active';
 	private $ninja_edit_time = 'edit_history_NET';
 	private $view_permission = 'edit_history_view_permission';
+	private $enabled_external_users = 'edit_history_EEU';
+	private $external_users_table = 'edit_history_EUT';
+	private $external_users_table_key = 'edit_history_EUTK';
+	private $external_users_table_handle = 'edit_history_EUTH';
 
 	function init_queries( $tableslc )
 	{
@@ -66,11 +70,21 @@ class qa_edit_history
 				qa_opt( $this->optactive, '0' );
 			qa_opt( $this->ninja_edit_time, (int)qa_post_text('ninja_edit_time') );
 			qa_opt( $this->view_permission, (int)qa_post_text('view_permission') );
+			//qa_opt( $this->enabled_external_users, qa_post_text('enabled_external_users') );
+			if ( qa_post_text('enabled_external_users') ) qa_opt( $this->enabled_external_users, '1' );
+			else qa_opt( $this->enabled_external_users, '0' );
+			qa_opt( $this->external_users_table, qa_post_text('external_users_table') );
+			qa_opt( $this->external_users_table_key, qa_post_text('external_users_table_key') );
+			qa_opt( $this->external_users_table_handle, qa_post_text('external_users_table_handle') );
 		}
 
 		$eh_active = qa_opt($this->optactive);
 		$ninja_edit_time = qa_opt($this->ninja_edit_time);
 		$view_permission = qa_opt($this->view_permission);
+		$enabled_external_users = qa_opt($this->enabled_external_users);
+		$external_users_table = qa_opt($this->external_users_table);
+		$external_users_table_key = qa_opt($this->external_users_table_key);
+		$external_users_table_handle = qa_opt($this->external_users_table_handle);
 
 		$form = array(
 			'ok' => $saved_msg,
@@ -98,6 +112,30 @@ class qa_edit_history
 					'value' =>  @$permitoptions[$view_permission],
 					'options' => $permitoptions,
 					'note' => qa_lang_html('edithistory/view_permission_note'),
+				),
+				array(
+					'type' => 'checkbox',
+					'label' => qa_lang_html('edithistory/enabled_external_users'),
+					'tags' => 'NAME="enabled_external_users"',
+					'value' => $enabled_external_users === '1',
+				),
+				array(
+					'type' => 'text',
+					'label' => qa_lang_html('edithistory/external_users_table'),
+					'tags' => 'NAME="external_users_table"',
+					'value' => $external_users_table,
+				),
+				array(
+					'type' => 'text',
+					'label' => qa_lang_html('edithistory/external_users_table_key'),
+					'tags' => 'NAME="external_users_table_key"',
+					'value' => $external_users_table_key,
+				),
+				array(
+					'type' => 'text',
+					'label' => qa_lang_html('edithistory/external_users_table_handle'),
+					'tags' => 'NAME="external_users_table_handle"',
+					'value' => $external_users_table_handle,
 				),
 			),
 

@@ -77,24 +77,50 @@ class qa_edh_revisions
 			return null;
 		}			
 
+		$sql = '';
+		
 		// get original post
-		$sql =
-			'SELECT p.postid, p.type, p.userid, u.handle, p.format, UNIX_TIMESTAMP(p.created) AS updated, p.title, p.content, p.tags
-			 FROM ^posts p LEFT JOIN ^users u ON u.userid=p.userid
-			 WHERE p.postid=#';
-		$result = qa_db_query_sub( $sql, $postid );
+		if(QA_FINAL_EXTERNAL_USERS && (bool)qa_opt('edit_history_EEU'))
+		{
+			$sql =
+				'SELECT p.postid, p.type, p.userid, u.' . qa_opt('edit_history_EUTH') . ' as handle, p.format, UNIX_TIMESTAMP(p.created) AS updated, p.title, p.content, p.tags
+				 FROM ^posts p LEFT JOIN ' . qa_opt('edit_history_EUT') . ' u ON u.' . qa_opt('edit_history_EUTK') . '=p.userid
+				 WHERE p.postid=#';
+			$result = qa_db_query_sub( $sql, $postid );
+		}
+		else
+		{
+			$sql =
+
+				'SELECT p.postid, p.type, p.userid, u.handle, p.format, UNIX_TIMESTAMP(p.created) AS updated, p.title, p.content, p.tags
+				 FROM ^posts p LEFT JOIN ^users u ON u.userid=p.userid
+				 WHERE p.postid=#';
+			$result = qa_db_query_sub( $sql, $postid );
+		}
 		$original = qa_db_read_one_assoc( $result, true );
 		$revisions = array( $original );
 
 		// get post revisions
-		$sql =
-			'SELECT p.postid, p.userid, u.handle, UNIX_TIMESTAMP(p.updated) AS updated, p.title, p.content, p.tags
-			 FROM ^edit_history p LEFT JOIN ^users u ON u.userid=p.userid
-			 WHERE p.postid=#
-			 ORDER BY p.updated DESC';
-		$result = qa_db_query_sub( $sql, $postid );
-		$revisions = array_merge( $revisions, qa_db_read_all_assoc( $result ) );
+		if(QA_FINAL_EXTERNAL_USERS && (bool)qa_opt('edit_history_EEU'))
+		{
+			$sql =
+				'SELECT p.postid, p.userid, u.' . qa_opt('edit_history_EUTH') . ' as handle, UNIX_TIMESTAMP(p.updated) AS updated, p.title, p.content, p.tags
+				 FROM ^edit_history p LEFT JOIN ' . qa_opt('edit_history_EUT') . ' u ON u.' . qa_opt('edit_history_EUTK') . '=p.userid
+				 WHERE p.postid=#
+				 ORDER BY p.updated DESC';
+			$result = qa_db_query_sub( $sql, $postid );
+		}
+		else
+		{
+			$sql =
 
+				'SELECT p.postid, p.userid, u.handle, UNIX_TIMESTAMP(p.updated) AS updated, p.title, p.content, p.tags
+				 FROM ^edit_history p LEFT JOIN ^users u ON u.userid=p.userid
+				 WHERE p.postid=#
+				 ORDER BY p.updated DESC';
+			$result = qa_db_query_sub( $sql, $postid );
+		}
+		$revisions = array_merge( $revisions, qa_db_read_all_assoc( $result ) );
 		// return 404 if no revisions
 		if ( !$original || count($revisions) <= 1 )
 		{

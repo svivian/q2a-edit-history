@@ -13,6 +13,8 @@ class qa_html_theme_layer extends qa_html_theme_base
 		$q_tmpl = $this->template == 'question';
 		$qa_exists = isset($this->content['q_view']) && isset($this->content['a_list']);
 
+		$user_permit = !qa_user_permit_error('edit_history_view_permission');
+		
 		if ( $q_tmpl && $qa_exists && $user_permit )
 		{
 			// grab a list of all Q/A posts on this page
