@@ -48,7 +48,7 @@ class qa_html_theme_layer extends qa_html_theme_base
 		$this->output_raw("var lock_time = " . qa_opt('edit_history_NET') . ";");
 		$this->output_raw('var edit_check = function(postid){');
 		$this->output_raw('var now = new Date().getTime()/1000;');
-		$this->output_raw('if(Math.round(now)-revisions[postid]>lock_time){');
+		$this->output_raw('if(Math.round(now)-revisions[postid]<lock_time){');
 		$this->output(
 			'var id = "#meta-message-" + postid;',
 			'var msg = $(id);',
