@@ -47,35 +47,42 @@ class qa_edit_history
 
 		if ( qa_clicked('edit_history_save') )
 		{
-			if ( qa_post_text('eh_active') )
+			if( !$this->validate_data() )
 			{
-				$sql = 'SHOW TABLES LIKE "^'.$this->pluginkey.'"';
-				$result = qa_db_query_sub($sql);
-				$rows = qa_db_read_all_assoc($result);
-				if ( count($rows) > 0 )
-				{
-					qa_opt( $this->optactive, '1' );
-				}
-				else
-				{
-					$error = array(
-						'type' => 'custom',
-						'error' => qa_lang_html('edithistory/admin_notable') . '<a href="' . qa_path('install') . '">' . qa_lang_html('edithistory/admin_create_table') . '</a>',
-					);
-				}
-
-				$saved_msg = qa_lang_html('admin/options_saved');
+				$saved_msg = qa_lang_html('edithistory/incorrect_entry');
 			}
 			else
-				qa_opt( $this->optactive, '0' );
-			qa_opt( $this->ninja_edit_time, (int)qa_post_text('ninja_edit_time') );
-			qa_opt( $this->view_permission, (int)qa_post_text('view_permission') );
-			//qa_opt( $this->enabled_external_users, qa_post_text('enabled_external_users') );
-			if ( qa_post_text('enabled_external_users') ) qa_opt( $this->enabled_external_users, '1' );
-			else qa_opt( $this->enabled_external_users, '0' );
-			qa_opt( $this->external_users_table, qa_post_text('external_users_table') );
-			qa_opt( $this->external_users_table_key, qa_post_text('external_users_table_key') );
-			qa_opt( $this->external_users_table_handle, qa_post_text('external_users_table_handle') );
+			{
+				if ( qa_post_text('eh_active') )
+				{
+					$sql = 'SHOW TABLES LIKE "^'.$this->pluginkey.'"';
+					$result = qa_db_query_sub($sql);
+					$rows = qa_db_read_all_assoc($result);
+					if ( count($rows) > 0 )
+					{
+						qa_opt( $this->optactive, '1' );
+					}
+					else
+					{
+						$error = array(
+							'type' => 'custom',
+							'error' => qa_lang_html('edithistory/admin_notable') . '<a href="' . qa_path('install') . '">' . qa_lang_html('edithistory/admin_create_table') . '</a>',
+						);
+					}
+
+					$saved_msg = qa_lang_html('admin/options_saved');
+				}
+				else
+					qa_opt( $this->optactive, '0' );
+				qa_opt( $this->ninja_edit_time, (int)qa_post_text('ninja_edit_time') );
+				qa_opt( $this->view_permission, (int)qa_post_text('view_permission') );
+				//qa_opt( $this->enabled_external_users, qa_post_text('enabled_external_users') );
+				if ( qa_post_text('enabled_external_users') ) qa_opt( $this->enabled_external_users, '1' );
+				else qa_opt( $this->enabled_external_users, '0' );
+				qa_opt( $this->external_users_table, qa_post_text('external_users_table') );
+				qa_opt( $this->external_users_table_key, qa_post_text('external_users_table_key') );
+				qa_opt( $this->external_users_table_handle, qa_post_text('external_users_table_handle') );
+			}
 		}
 
 		$eh_active = qa_opt($this->optactive);
@@ -154,6 +161,39 @@ class qa_edit_history
 		return $form;
 	}
 
+	private function validate_data()
+	{
+		$ret = true;
+		
+		$table = $_POST['external_users_table'];
+		$table_key = $_POST['external_users_table_key'];
+		$table_handle = $_POST['external_users_table_handle'];
+	
+		// check if table exists
+		$sql = "SHOW TABLES LIKE '$table'";
+		$result = qa_db_query_sub($sql);
+		$rows = qa_db_read_all_assoc($result);
+		if (count($rows) == 0)
+			$ret = false;
+		else
+		{
+			// check if id column exists
+			$sql = "SHOW COLUMNS FROM `$table` LIKE '$table_key'";
+			$result = qa_db_query_sub($sql);
+			$rows = qa_db_read_all_assoc($result);
+			if (count($rows) == 0)
+				$ret = false;
+				
+			// check if id column exists
+			$sql = "SHOW COLUMNS FROM `$table` LIKE '$table_handle'";
+			$result = qa_db_query_sub($sql);
+			$rows = qa_db_read_all_assoc($result);
+			if (count($rows) == 0)
+				$ret = false;
+		}
+			
+		return $ret;
+	}
 
 	function process_event( $event, $userid, $handle, $cookieid, $params )
 	{

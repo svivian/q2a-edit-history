@@ -5,8 +5,10 @@
 */
 
 return array(
+	'request_title' => 'Edit History',
 	'main_title' => 'Recent post edits',
 	'revision_title' => 'Edit history for post #^',
+	'page_description' => '<p>This page will list posts that have been edited recently.</p>',
 
 	'no_revisions' => 'No revisions for this post',
 	'back_to_post' => 'Back to post',
@@ -32,4 +34,6 @@ return array(
 	'external_users_table' => 'External users table name',
 	'external_users_table_key' => 'External users table key name',
 	'external_users_table_handle' => 'External users table handle field name',
+	'incorrect_entry' => 'Incorrect Entries',
+	'edit_locked' => 'This post has edited already. Please edit after ^ seconds.',
 );

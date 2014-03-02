@@ -20,7 +20,7 @@ class qa_edh_revisions
 	{
 		return array(
 			array(
-				'title' => 'Edit History',
+				'title' => qa_lang_html('edithistory/request_title'),
 				'request' => 'revisions',
 				'nav' => null,
 			),
@@ -63,7 +63,7 @@ class qa_edh_revisions
 	private function recent_edits( &$qa_content )
 	{
 		$qa_content['title'] = qa_lang_html('edithistory/main_title');
-		$qa_content['custom'] = '<p>This page will list posts that have been edited recently.</p>';
+		$qa_content['custom'] = qa_lang_html('edithistory/page_description');
 	}
 
 	// Display all the edits made to a post ($postid already validated)
@@ -91,7 +91,6 @@ class qa_edh_revisions
 		else
 		{
 			$sql =
-
 				'SELECT p.postid, p.type, p.userid, u.handle, p.format, UNIX_TIMESTAMP(p.created) AS updated, p.title, p.content, p.tags
 				 FROM ^posts p LEFT JOIN ^users u ON u.userid=p.userid
 				 WHERE p.postid=#';
@@ -113,7 +112,6 @@ class qa_edh_revisions
 		else
 		{
 			$sql =
-
 				'SELECT p.postid, p.userid, u.handle, UNIX_TIMESTAMP(p.updated) AS updated, p.title, p.content, p.tags
 				 FROM ^edit_history p LEFT JOIN ^users u ON u.userid=p.userid
 				 WHERE p.postid=#
@@ -121,6 +119,7 @@ class qa_edh_revisions
 			$result = qa_db_query_sub( $sql, $postid );
 		}
 		$revisions = array_merge( $revisions, qa_db_read_all_assoc( $result ) );
+
 		// return 404 if no revisions
 		if ( !$original || count($revisions) <= 1 )
 		{
@@ -208,7 +207,7 @@ class qa_edh_revisions
 
 	private function user_handle($handle)
 	{
-		return $handle === null ? qa_lang_html('main/anonymous') : qa_html($handle);
+		$url = qa_path_html('', array('qa'=>'user/'.qa_html($handle)));
+		return $handle === null ? qa_lang_html('main/anonymous') : '<a rel="nofollow" href="'.$url.'">' . qa_html($handle) . '</a>';
 	}
-
 }

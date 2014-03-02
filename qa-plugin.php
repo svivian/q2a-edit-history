@@ -3,8 +3,8 @@
 	Plugin Name: Edit History
 	Plugin URI: https://github.com/ElephantsGroup/q2a-edit-history
 	Plugin Description: Edit History plugin for Q2A
-	Plugin Version: 1.2.1
-	Plugin Date: 2014-02-23
+	Plugin Version: 1.2.2
+	Plugin Date: 2014-03-02
 	Plugin Author: Scott Vivian
 	Plugin Author URI: http://codelair.co.uk/
 	Plugin License: GPLv3
@@ -34,4 +34,4 @@ if ( !defined('QA_VERSION') )
 qa_register_plugin_module('event', 'qa-edit-history.php', 'qa_edit_history', 'Edit History');
 qa_register_plugin_module('page', 'qa-edh-revisions.php', 'qa_edh_revisions', 'Post revisions');
 qa_register_plugin_layer('qa-edh-layer.php', 'Edit History Layer');
-qa_register_plugin_phrases('qa-edh-lang-*.php', 'edithistory');
+qa_register_plugin_phrases('lang/qa-edh-lang-*.php', 'edithistory');
