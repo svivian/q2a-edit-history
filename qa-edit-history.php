@@ -76,7 +76,6 @@ class qa_edit_history
 					qa_opt( $this->optactive, '0' );
 				qa_opt( $this->ninja_edit_time, (int)qa_post_text('ninja_edit_time') );
 				qa_opt( $this->view_permission, (int)qa_post_text('view_permission') );
-				//qa_opt( $this->enabled_external_users, qa_post_text('enabled_external_users') );
 				if ( qa_post_text('enabled_external_users') ) qa_opt( $this->enabled_external_users, '1' );
 				else qa_opt( $this->enabled_external_users, '0' );
 				qa_opt( $this->external_users_table, qa_post_text('external_users_table') );

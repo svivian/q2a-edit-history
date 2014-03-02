@@ -67,7 +67,6 @@ class qa_html_theme_layer extends qa_html_theme_base
 
 	function post_meta($post, $class, $prefix=null, $separator='<br />')
 	{
-		// only link when there are actual revisions
 		if ( isset($post['when_2']) && in_array( $post['raw']['postid'], array_keys($this->rev_postids) ) )
 		{
 			$url = qa_path_html("revisions", array("qa_1"=>$post['raw']['postid']));

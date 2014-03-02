@@ -155,8 +155,6 @@ class qa_edh_revisions
 		$revisions[0]['edited'] = $revisions[$len-1]['updated'];
 		$revisions[0]['editedby'] = $this->user_handle( $revisions[$len-1]['handle'] );
 
-		// $revisions = array_reverse( $revisions );
-
 		// display results
 		$post_url = null;
 		if ( $original['type'] == 'Q' )

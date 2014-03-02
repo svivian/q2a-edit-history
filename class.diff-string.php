@@ -112,5 +112,4 @@ class diff_string
 
 		return array( $o, $n );
 	}
-
 }
