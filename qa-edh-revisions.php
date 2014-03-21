@@ -20,7 +20,7 @@ class qa_edh_revisions
 	{
 		return array(
 			array(
-				'title' => 'Edit History',
+				'title' => qa_lang_html('edithistory/request_title'),
 				'request' => 'revisions',
 				'nav' => null,
 			),
@@ -44,17 +44,24 @@ class qa_edh_revisions
 		require $this->directory.'class.diff-string.php';
 		$qa_content = qa_content_prepare();
 		preg_match( $this->reqmatch, $request, $matches );
-
-		if ( isset($matches[2]) )
+		$post_id = 0;
+		
+		if ( isset($_GET['qa_1']) )
 		{
-			// post revisions: list all edits to this post
-			$this->post_revisions( $qa_content, qa_html($matches[2]) );
+			$post_id = $_GET['qa_1'];
+		}	
+		else if ( isset($matches[2]) )
+		{
+			$post_id = qa_html($matches[2]);
 		}
 		else
 		{
 			// main page: list recent revisions
 			$this->recent_edits( $qa_content );
 		}
+
+		// post revisions: list all edits to this post
+		$this->post_revisions( $qa_content, $post_id );
 
 		return $qa_content;
 	}
@@ -63,7 +70,7 @@ class qa_edh_revisions
 	private function recent_edits( &$qa_content )
 	{
 		$qa_content['title'] = qa_lang_html('edithistory/main_title');
-		$qa_content['custom'] = '<p>This page will list posts that have been edited recently.</p>';
+		$qa_content['custom'] = qa_lang_html('edithistory/page_description');
 	}
 
 	// Display all the edits made to a post ($postid already validated)
@@ -71,35 +78,53 @@ class qa_edh_revisions
 	{
 		$qa_content['title'] = qa_lang_html_sub('edithistory/revision_title', $postid);
 
-		// check user is allowed to view edit history
-		$error = qa_edit_history_perms();
-		if ( $error === 'login' )
+		if (qa_user_permit_error('edit_history_view_permission'))
 		{
-			$qa_content['error'] = qa_insert_login_links( qa_lang_html('edithistory/need_login'), qa_request() );
-			return;
-		}
-		else if ( $error !== false )
-		{
-			$qa_content['error'] = qa_lang_html('edithistory/no_user_perms');
-			return;
-		}
+			$qa_content['error'] = qa_lang_html('edithistory/permission_error');
+			return null;
+		}			
 
+		$sql = '';
+		
 		// get original post
-		$sql =
-			'SELECT p.postid, p.type, p.userid, u.handle, p.format, UNIX_TIMESTAMP(p.created) AS updated, p.title, p.content, p.tags
-			 FROM ^posts p LEFT JOIN ^users u ON u.userid=p.userid
-			 WHERE p.postid=#';
-		$result = qa_db_query_sub( $sql, $postid );
+		if(QA_FINAL_EXTERNAL_USERS && (bool)qa_opt('edit_history_EEU'))
+		{
+			$sql =
+				'SELECT p.postid, p.type, p.userid, u.' . qa_opt('edit_history_EUTH') . ' as handle, p.format, UNIX_TIMESTAMP(p.created) AS updated, p.title, p.content, p.tags
+				 FROM ^posts p LEFT JOIN ' . qa_opt('edit_history_EUT') . ' u ON u.' . qa_opt('edit_history_EUTK') . '=p.userid
+				 WHERE p.postid=#';
+			$result = qa_db_query_sub( $sql, $postid );
+		}
+		else
+		{
+			$sql =
+				'SELECT p.postid, p.type, p.userid, u.handle, p.format, UNIX_TIMESTAMP(p.created) AS updated, p.title, p.content, p.tags
+				 FROM ^posts p LEFT JOIN ^users u ON u.userid=p.userid
+				 WHERE p.postid=#';
+			$result = qa_db_query_sub( $sql, $postid );
+		}
 		$original = qa_db_read_one_assoc( $result, true );
 		$revisions = array( $original );
 
 		// get post revisions
-		$sql =
-			'SELECT p.postid, p.userid, u.handle, UNIX_TIMESTAMP(p.updated) AS updated, p.title, p.content, p.tags
-			 FROM ^edit_history p LEFT JOIN ^users u ON u.userid=p.userid
-			 WHERE p.postid=#
-			 ORDER BY p.updated DESC';
-		$result = qa_db_query_sub( $sql, $postid );
+		if(QA_FINAL_EXTERNAL_USERS && (bool)qa_opt('edit_history_EEU'))
+		{
+			$sql =
+				'SELECT p.postid, p.userid, u.' . qa_opt('edit_history_EUTH') . ' as handle, UNIX_TIMESTAMP(p.updated) AS updated, p.title, p.content, p.tags
+				 FROM ^edit_history p LEFT JOIN ' . qa_opt('edit_history_EUT') . ' u ON u.' . qa_opt('edit_history_EUTK') . '=p.userid
+				 WHERE p.postid=#
+				 ORDER BY p.updated DESC';
+			$result = qa_db_query_sub( $sql, $postid );
+		}
+		else
+		{
+			$sql =
+				'SELECT p.postid, p.userid, u.handle, UNIX_TIMESTAMP(p.updated) AS updated, p.title, p.content, p.tags
+				 FROM ^edit_history p LEFT JOIN ^users u ON u.userid=p.userid
+				 WHERE p.postid=#
+				 ORDER BY p.updated DESC';
+			$result = qa_db_query_sub( $sql, $postid );
+		}
 		$revisions = array_merge( $revisions, qa_db_read_all_assoc( $result ) );
 
 		// return 404 if no revisions
@@ -129,8 +154,8 @@ class qa_edh_revisions
 		{
 			$rc =& $revisions[$i];
 			$rp =& $revisions[$i-1];
-			$rc['diff_title'] = diff_string::compare( qa_html($rp['title']), qa_html($rc['title']) );
-			$rc['diff_content'] = diff_string::compare( qa_html($rp['content']), qa_html($rc['content']) );
+			$rc['diff_title'] = (new diff_string)->compare( qa_html($rp['title']), qa_html($rc['title']) );
+			$rc['diff_content'] = (new diff_string)->compare( qa_html($rp['content']), qa_html($rc['content']) );
 			$rc['edited'] = $rp['updated'];
 			$rc['editedby'] = $this->user_handle( $rp['handle'] );
 		}
@@ -189,7 +214,7 @@ class qa_edh_revisions
 
 	private function user_handle($handle)
 	{
-		return $handle === null ? qa_lang_html('main/anonymous') : qa_html($handle);
+		$url = qa_path_html('', array('qa'=>'user/'.qa_html($handle)));
+		return $handle === null ? qa_lang_html('main/anonymous') : '<a rel="nofollow" href="'.$url.'">' . qa_html($handle) . '</a>';
 	}
-
 }
