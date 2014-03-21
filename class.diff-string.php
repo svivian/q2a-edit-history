@@ -9,7 +9,7 @@
 class diff_string
 {
 	// ($o,$n) are strings
-	public function compare( $o, $n )
+	public static function compare( $o, $n )
 	{
 		$str = '';
 		$o = trim($o);
@@ -58,7 +58,7 @@ class diff_string
 	}
 
 	// ($o,$n) are arrays of words
-	private function diff( $o, $n )
+	private static function diff( $o, $n )
 	{
 		$ns = array();
 		$os = array();
