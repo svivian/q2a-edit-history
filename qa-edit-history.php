@@ -17,6 +17,27 @@ class qa_edit_history
 	private $external_users_table_key = 'edit_history_EUTK';
 	private $external_users_table_handle = 'edit_history_EUTH';
 
+	function option_default($option) {
+
+		switch($option) {
+			case 'ninja_edit_time':
+				return '300';
+			case 'view_permission':
+				return QA_USER_LEVEL_ADMIN;
+			case 'enabled_external_users':
+				return 0;
+			case 'external_users_table':
+				return '';
+			case 'external_users_table_key':
+				return '';
+			case 'external_users_table_handle':
+				return '';
+			default:
+				return null;
+		}
+		
+	}
+		
 	function init_queries( $tableslc )
 	{
 		$tablename = qa_db_add_table_prefix($this->pluginkey);
@@ -76,12 +97,22 @@ class qa_edit_history
 					qa_opt( $this->optactive, '0' );
 				qa_opt( $this->ninja_edit_time, (int)qa_post_text('ninja_edit_time') );
 				qa_opt( $this->view_permission, (int)qa_post_text('view_permission') );
+				//qa_opt( $this->enabled_external_users, qa_post_text('enabled_external_users') );
 				if ( qa_post_text('enabled_external_users') ) qa_opt( $this->enabled_external_users, '1' );
 				else qa_opt( $this->enabled_external_users, '0' );
 				qa_opt( $this->external_users_table, qa_post_text('external_users_table') );
 				qa_opt( $this->external_users_table_key, qa_post_text('external_users_table_key') );
 				qa_opt( $this->external_users_table_handle, qa_post_text('external_users_table_handle') );
 			}
+		}
+		if ( qa_clicked('edit_history_reset') )
+		{
+			qa_opt($this->ninja_edit_time, $this->option_default('ninja_edit_time'));
+			qa_opt($this->view_permission, $this->option_default('view_permission'));
+			qa_opt($this->enabled_external_users, $this->option_default('enabled_external_users'));
+			qa_opt($this->external_users_table, $this->option_default('external_users_table'));
+			qa_opt($this->external_users_table_key, $this->option_default('external_users_table_key'));
+			qa_opt($this->external_users_table_handle, $this->option_default('external_users_table_handle'));
 		}
 
 		$eh_active = qa_opt($this->optactive);
@@ -149,6 +180,10 @@ class qa_edit_history
 				array(
 					'label' => qa_lang_html('admin/save_options_button'),
 					'tags' => 'name="edit_history_save"',
+				),
+				array(
+					'label' => qa_lang_html('admin/reset_options_button'),
+					'tags' => 'name="edit_history_reset"',
 				),
 			),
 

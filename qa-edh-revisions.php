@@ -44,17 +44,24 @@ class qa_edh_revisions
 		require $this->directory.'class.diff-string.php';
 		$qa_content = qa_content_prepare();
 		preg_match( $this->reqmatch, $request, $matches );
-
-		if ( isset($matches[2]) )
+		$post_id = 0;
+		
+		if ( isset($_GET['qa_1']) )
 		{
-			// post revisions: list all edits to this post
-			$this->post_revisions( $qa_content, qa_html($matches[2]) );
+			$post_id = $_GET['qa_1'];
+		}	
+		else if ( isset($matches[2]) )
+		{
+			$post_id = qa_html($matches[2]);
 		}
 		else
 		{
 			// main page: list recent revisions
 			$this->recent_edits( $qa_content );
 		}
+
+		// post revisions: list all edits to this post
+		$this->post_revisions( $qa_content, $post_id );
 
 		return $qa_content;
 	}
@@ -154,6 +161,8 @@ class qa_edh_revisions
 		}
 		$revisions[0]['edited'] = $revisions[$len-1]['updated'];
 		$revisions[0]['editedby'] = $this->user_handle( $revisions[$len-1]['handle'] );
+
+		// $revisions = array_reverse( $revisions );
 
 		// display results
 		$post_url = null;
