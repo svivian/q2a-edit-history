@@ -3,7 +3,7 @@
 	Plugin Name: Edit History
 	Plugin URI: https://github.com/svivian/q2a-edit-history
 	Plugin Description: Edit History plugin for Q2A
-	Plugin Version: 1.2
+	Plugin Version: 1.2.1
 	Plugin Date: 2014-03-22
 	Plugin Author: Scott Vivian
 	Plugin Author URI: http://codelair.com/

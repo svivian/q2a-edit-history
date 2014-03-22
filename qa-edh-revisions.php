@@ -28,13 +28,13 @@ class qa_edh_revisions
 		);
 	}
 
-	public function match_request( $request )
+	public function match_request($request)
 	{
 		// validates the postid so we don't need to do this later
 		return preg_match( $this->reqmatch, $request ) > 0;
 	}
 
-	public function process_request( $request )
+	public function process_request($request)
 /*
 	Post edits are stored in a special way. The `qa_posts` tables contains the latest version displayed (obviously).
 	The `qa_edit_history` table stores each previous revision, with the time it was updated to the later one.
@@ -61,14 +61,14 @@ class qa_edh_revisions
 	}
 
 	// Display all recent edits
-	private function recent_edits( &$qa_content )
+	private function recent_edits(&$qa_content)
 	{
 		$qa_content['title'] = qa_lang_html('edithistory/main_title');
 		$qa_content['custom'] = '<p>This page will list posts that have been edited recently.</p>';
 	}
 
 	// Display all the edits made to a post ($postid already validated)
-	private function post_revisions( &$qa_content, $postid )
+	private function post_revisions(&$qa_content, $postid)
 	{
 		$qa_content['title'] = qa_lang_html('edithistory/plugin_title');
 
