@@ -69,7 +69,7 @@ class qa_edh_revisions
 	// Display all the edits made to a post ($postid already validated)
 	private function post_revisions( &$qa_content, $postid )
 	{
-		$qa_content['title'] = qa_lang_html_sub('edithistory/revision_title', $postid);
+		$qa_content['title'] = qa_lang_html('edithistory/plugin_title');
 
 		// check user is allowed to view edit history
 		$error = qa_edit_history_perms();
@@ -184,6 +184,7 @@ class qa_edh_revisions
 		$qh[] = 'del { background-color: #e5bdb2; color: #a82400; text-decoration: line-through; } ';
 		$qh[] = '</style>';
 
+		$qa_content['title'] = qa_lang_html_sub('edithistory/revision_title', $postid);
 		$qa_content['custom'] = $html;
 	}
 

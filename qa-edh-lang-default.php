@@ -5,6 +5,8 @@
 */
 
 return array(
+	'plugin_title' => 'Edit History',
+
 	'main_title' => 'Recent post edits',
 	'revision_title' => 'Edit history for post #^',
 
@@ -16,7 +18,6 @@ return array(
 	'need_login' => 'Please ^1log in^2 or ^3register^4 to view this page.',
 	'no_user_perms' => 'Sorry, you do not have permission to view this page.',
 
-	'admin_title' => 'Post Revisions',
 	'admin_notable' => 'Database table is not set up yet.',
 	'admin_create_table' => 'Create table',
 
