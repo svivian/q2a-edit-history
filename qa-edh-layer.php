@@ -8,13 +8,13 @@ class qa_html_theme_layer extends qa_html_theme_base
 {
 	private $rev_postids = array();
 
-	function doctype()
+	public function doctype()
 	{
 		$q_tmpl = $this->template == 'question';
 		$qa_exists = isset($this->content['q_view']) && isset($this->content['a_list']);
-		$user_permit = qa_edit_history_perms() === false;
+		$user_permitted = qa_user_permit_error(qa_opt('edit_history_view_perms')) === false;
 
-		if ( $q_tmpl && $qa_exists && $user_permit )
+		if ( $q_tmpl && $qa_exists && $user_permitted )
 		{
 			// grab a list of all Q/A posts on this page
 			$postids = array( $this->content['q_view']['raw']['postid'] );
@@ -29,7 +29,7 @@ class qa_html_theme_layer extends qa_html_theme_base
 		parent::doctype();
 	}
 
-	function post_meta($post, $class, $prefix=null, $separator='<BR/>')
+	public function post_meta($post, $class, $prefix=null, $separator='<BR/>')
 	{
 		// only link when there are actual revisions
 		if ( isset($post['when_2']) && in_array( $post['raw']['postid'], $this->rev_postids ) )

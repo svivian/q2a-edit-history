@@ -26,5 +26,5 @@ return array(
 	'admin_perms' => 'Edit History visible for',
 	'admin_perms_note' => 'User level allowed to see post revisions.',
 	'admin_ninja' => 'Ninja edit time',
-	'admin_ninja_note' => 'Number of seconds additional edits can be made without being logged.',
+	'admin_ninja_note' => 'Time (in seconds) between logged edits.',
 );
