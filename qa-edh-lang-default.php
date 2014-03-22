@@ -25,4 +25,6 @@ return array(
 	'admin_active_note' => 'Untick to stop tracking post edits.',
 	'admin_perms' => 'Edit History visible for',
 	'admin_perms_note' => 'User level allowed to see post revisions.',
+	'admin_ninja' => 'Ninja edit time',
+	'admin_ninja_note' => 'Number of seconds additional edits can be made without being logged.',
 );

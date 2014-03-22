@@ -11,6 +11,7 @@ class qa_edit_history
 	private $pluginkey = 'edit_history';
 	private $opt_active = 'edit_history_active';
 	private $opt_perms = 'edit_history_view_perms';
+	private $opt_ninja = 'edit_history_ninja';
 
 	public function option_default($option)
 	{
@@ -19,6 +20,8 @@ class qa_edit_history
 				return 0;
 			case 'edit_history_view_perms':
 				return QA_PERMIT_USERS;
+			case 'edit_history_ninja':
+				return 300;
 		}
 
 		return null;
@@ -56,18 +59,20 @@ class qa_edit_history
 		if (qa_clicked('edit_history_save')) {
 			$active = qa_post_text('eh_active') ? '1' : '0';
 			qa_opt($this->opt_active, $active);
-			qa_opt($this->opt_perms, qa_post_text('ua_user_perms'));
+
+			qa_opt($this->opt_perms, qa_post_text('eh_user_perms'));
+			qa_opt($this->opt_ninja, qa_post_text('eh_ninja_time'));
+
 			$saved_msg = qa_lang_html('admin/options_saved');
 		}
 
 		// plugin state
-		$eh_active = qa_opt($this->opt_active);
 		$active_field = array(
-			'type' => 'checkbox',
 			'label' => qa_lang_html('edithistory/admin_active'),
-			'tags' => 'NAME="eh_active"',
-			'value' => $eh_active === '1',
 			'note' => qa_lang_html('edithistory/admin_active_note'),
+			'type' => 'checkbox',
+			'tags' => 'name="eh_active"',
+			'value' => qa_opt($this->opt_active) === '1',
 		);
 
 		// get list of user permissions
@@ -77,12 +82,21 @@ class qa_edit_history
 		$selected = isset($permitoptions[$view_perms]) ? $permitoptions[$view_perms] : QA_PERMIT_ALL;
 
 		$perms_field = array(
-			'type' => 'select',
 			'label' => qa_lang_html('edithistory/admin_perms'),
-			'tags' => 'NAME="ua_user_perms"',
+			'note' => qa_lang_html('edithistory/admin_perms_note'),
+			'type' => 'select',
+			'tags' => 'name="eh_user_perms"',
 			'options' => $permitoptions,
 			'value' => $selected,
-			'note' => qa_lang_html('edithistory/admin_perms_note'),
+		);
+
+		// ninja edit time option
+		$ninja_field = array(
+			'label' => qa_lang_html('edithistory/admin_ninja'),
+			'note' => qa_lang_html('edithistory/admin_ninja_note'),
+			'type' => 'number',
+			'tags' => 'name="eh_ninja_time"',
+			'value' => qa_opt($this->opt_ninja),
 		);
 
 		$form = array(
@@ -92,6 +106,7 @@ class qa_edit_history
 			'fields' => array(
 				$active_field,
 				$perms_field,
+				$ninja_field,
 			),
 
 			'buttons' => array(
@@ -137,7 +152,7 @@ class qa_edit_history
 		// new posts have a NULL updated time
 		if ( $lastupdate == null )
 			$lastupdate = $params[$oldkey]['created'];
-		if ( abs($now-$lastupdate) < 300 )
+		if ( abs($now-$lastupdate) < qa_opt($this->opt_ninja) )
 			return;
 
 		$userid = qa_get_logged_in_userid();
