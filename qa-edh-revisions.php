@@ -73,7 +73,7 @@ class qa_edh_revisions
 		$qa_content['title'] = qa_lang_html('edithistory/plugin_title');
 
 		// check user is allowed to view edit history
-		$error = qa_user_permit_error(qa_opt('edit_history_view_perms'));
+		$error = qa_user_permit_error('edit_history_view_perms');
 		if ( $error === 'login' )
 		{
 			$qa_content['error'] = qa_insert_login_links( qa_lang_html('edithistory/need_login'), qa_request() );
