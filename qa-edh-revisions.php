@@ -85,45 +85,37 @@ class qa_edh_revisions
 			return;
 		}
 
-		// get original post
-		$sql =
-			'SELECT p.postid, p.type, p.userid, u.handle, p.format, UNIX_TIMESTAMP(p.created) AS updated, p.title, p.content, p.tags
-			 FROM ^posts p LEFT JOIN ^users u ON u.userid=p.userid
-			 WHERE p.postid=#';
-		$result = qa_db_query_sub( $sql, $postid );
-		$original = qa_db_read_one_assoc( $result, true );
-		$revisions = array( $original );
-
-		// get post revisions
-		$sql =
-			'SELECT p.postid, p.userid, u.handle, UNIX_TIMESTAMP(p.updated) AS updated, p.title, p.content, p.tags
-			 FROM ^edit_history p LEFT JOIN ^users u ON u.userid=p.userid
-			 WHERE p.postid=#
-			 ORDER BY p.updated DESC';
-		$result = qa_db_query_sub( $sql, $postid );
-		$revisions = array_merge( $revisions, qa_db_read_all_assoc( $result ) );
+		$revisions = $this->db_get_revisions($postid);
 
 		// return 404 if no revisions
-		if ( !$original || count($revisions) <= 1 )
+		if ( count($revisions) <= 1 )
 		{
 			header('HTTP/1.0 404 Not Found');
 			$qa_content['error'] = qa_lang_html('edithistory/no_revisions');
 			return $qa_content;
 		}
 
-		// censor posts
+		// censor posts; build list of userids as we go
 		require_once QA_INCLUDE_DIR.'qa-util-string.php';
 		$this->options = array( 'blockwordspreg' => qa_get_block_words_preg(), 'fulldatedays' => qa_opt('show_full_date_days') );
+		$userids = array();
+
 		foreach ( $revisions as &$rev )
 		{
 			$rev['title'] = qa_block_words_replace( $rev['title'], $this->options['blockwordspreg'] );
 			$rev['content'] = qa_block_words_replace( $rev['content'], $this->options['blockwordspreg'] );
+			if (!in_array($rev['userid'], $userids))
+				$userids[] = $rev['userid'];
 		}
+
+		// get user handles
+		$usernames = qa_userids_to_handles($userids);
 
 		// run diff algorithm
 		$revisions = array_reverse( $revisions );
 		$revisions[0]['diff_title'] = trim($revisions[0]['title']);
 		$revisions[0]['diff_content'] = $revisions[0]['content'];
+		$revisions[0]['handle'] = $usernames[$revisions[0]['userid']];
 		$len = count($revisions);
 
 		for ( $i = 1; $i < $len; $i++ )
@@ -133,44 +125,64 @@ class qa_edh_revisions
 			$rc['diff_title'] = trim( diff_string::compare(qa_html($rp['title']), qa_html($rc['title'])) );
 			$rc['diff_content'] = trim( diff_string::compare(qa_html($rp['content']), qa_html($rc['content'])) );
 			$rc['edited'] = $rp['updated'];
-			$rc['editedby'] = $this->user_handle( $rp['handle'] );
+			$rc['editedby'] = $rp['handle'];
+
+			$rc['handle'] = $usernames[$rc['userid']];
 		}
 		$revisions[0]['edited'] = $revisions[$len-1]['updated'];
-		$revisions[0]['editedby'] = $this->user_handle( $revisions[$len-1]['handle'] );
+		$revisions[0]['editedby'] = $revisions[$len-1]['handle'];
 
 		// $revisions = array_reverse( $revisions );
 
 		// display results
 		$posturl = null;
-		if ( $original['type'] == 'Q' )
+		if ($original['type'] == 'Q')
 			$posturl = qa_q_path_html( $original['postid'], $original['title'] );
-		else if ( $original['type'] == 'A' )
+		else if ($original['type'] == 'A')
 			$posturl = '';
 
 		$this->html_output($qa_content, $revisions, $postid, $posturl);
 	}
 
+	private function db_get_revisions($postid)
+	{
+		// get latest version of post
+		$sql =
+			'SELECT postid, type, format, userid, UNIX_TIMESTAMP(created) AS updated, title, content, tags
+			 FROM ^posts
+			 WHERE postid=#';
+		$result = qa_db_query_sub( $sql, $postid );
+		$original = qa_db_read_one_assoc( $result, true );
+
+		// get previous revisions
+		$sql =
+			'SELECT postid, userid, UNIX_TIMESTAMP(updated) AS updated, title, content, tags
+			 FROM ^edit_history
+			 WHERE postid=#
+			 ORDER BY updated DESC';
+		$result = qa_db_query_sub( $sql, $postid );
+
+		return array_merge( array($original), qa_db_read_all_assoc($result) );
+	}
+
 	private function html_output(&$qa_content, &$revisions, $postid, $posturl)
 	{
-		$html = $posturl ? '<p><a href="' . $posturl . '">&laquo; ' . qa_lang_html('edithistory/back_to_post') . '</a></p>' : '';
+		$html = '';
+
+		if ($posturl)
+			$html .= '<p><a href="' . $posturl . '">&laquo; ' . qa_lang_html('edithistory/back_to_post') . '</a></p>';
+
 		foreach ( $revisions as $i=>$rev )
 		{
 			$updated = implode( '', qa_when_to_html($rev['edited'], $this->options['fulldatedays']) );
-			if ( $i > 0 )
-			{
-				$edited_when_by = strtr(qa_lang_html('edithistory/edited_when_by'), array(
-					'^1' => $updated,
-					'^2' => $rev['editedby'],
-				));
-			}
-			else
-			{
-				$edited_when_by = qa_lang_html_sub('edithistory/original_post_by', $rev['editedby']);
-				$edited_when_by = strtr(qa_lang_html('edithistory/original_post_by'), array(
-					'^1' => $updated,
-					'^2' => $rev['editedby'],
-				));
-			}
+			$userlink = $this->user_handle_link($rev['editedby']);
+			$langkey = $i > 0 ? 'edithistory/edited_when_by' : 'edithistory/original_post_by';
+
+			$edited_when_by = strtr(qa_lang_html($langkey), array(
+				'^1' => $updated,
+				'^2' => $userlink,
+			));
+
 
 			$html .= '<div class="diff-block">' . "\n";
 			$html .= '  <div class="diff-date">' . $edited_when_by . '</div>' . "\n";
@@ -195,9 +207,11 @@ class qa_edh_revisions
 		$qa_content['custom'] = $html;
 	}
 
-	private function user_handle($handle)
+	private function user_handle_link($handle)
 	{
-		return $handle === null ? qa_lang_html('main/anonymous') : qa_html($handle);
+		return empty($handle)
+			? qa_lang_html('main/anonymous')
+			: '<a href="' . qa_path_html('user/'.$handle) . '">' . qa_html($handle) . '</a>';
 	}
 
 }
