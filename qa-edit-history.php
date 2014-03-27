@@ -164,7 +164,7 @@ class qa_edit_history
 		$userid = qa_get_logged_in_userid();
 		$sql =
 			'INSERT INTO ^edit_history (postid, updated, title, content, tags, userid)
-			 VALUES (#, NOW(), $, $, $, #, $)';
+			 VALUES (#, NOW(), $, $, $, #)';
 
 		return qa_db_query_sub($sql, $params['postid'], @$params['oldtitle'], @$params['oldcontent'], @$params['oldtags'], $userid);
 	}
