@@ -112,13 +112,13 @@ class qa_edh_revisions
 		// get user handles
 		$usernames = qa_userids_to_handles($userids);
 
-		// first set diff of oldest revision to its content
+		// set diff of oldest revision to its own content
 		$revisions[0]['diff_title'] = trim($revisions[0]['title']);
 		$revisions[0]['diff_content'] = $revisions[0]['content'];
 		$revisions[0]['handle'] = $usernames[$revisions[0]['userid']];
 		$len = count($revisions);
 
-		// run diff algorithm against previous revision in turn
+		// run diff algorithm against each previous revision in turn
 		for ( $i = 1; $i < $len; $i++ )
 		{
 			$rc =& $revisions[$i];
@@ -133,17 +133,9 @@ class qa_edh_revisions
 		$revisions[0]['edited'] = $revisions[$len-1]['updated'];
 		$revisions[0]['editedby'] = $revisions[$len-1]['handle'];
 
-		$revisions = array_reverse( $revisions );
-
 		// display results
-		$posturl = null;
-		// qa_debug($revisions);
-		if ($revisions[0]['type'] == 'Q')
-			$posturl = qa_q_path_html( $revisions[0]['postid'], $revisions[0]['title'] );
-		else if ($revisions[0]['type'] == 'A')
-			$posturl = '';
-
-		$this->html_output($qa_content, $revisions, $postid, $posturl);
+		$revisions = array_reverse($revisions);
+		$this->html_output($qa_content, $revisions, $postid);
 	}
 
 	// return array containing the post at each revision, oldest first
@@ -160,7 +152,7 @@ class qa_edh_revisions
 
 		// get latest version of post from qa_posts
 		$sql =
-			'SELECT postid, type, format, userid, UNIX_TIMESTAMP(created) AS updated, title, content, tags
+			'SELECT postid, type, parentid, userid, format, UNIX_TIMESTAMP(created) AS updated, title, content, tags
 			 FROM ^posts
 			 WHERE postid=#';
 		$result = qa_db_query_sub( $sql, $postid );
@@ -169,12 +161,18 @@ class qa_edh_revisions
 		return array_merge($revisions, array($current));
 	}
 
-	private function html_output(&$qa_content, &$revisions, $postid, $posturl)
+	private function html_output(&$qa_content, &$revisions, $postid)
 	{
 		$html = '';
+		// create link back to post
+		$currRev = $revisions[0];
+		if ($currRev['type'] == 'Q')
+			$posturl = qa_q_path_html( $currRev['postid'], $currRev['title'] );
+		else if ($currRev['type'] == 'A')
+			$posturl = qa_q_path_html( $currRev['parentid'], $currRev['title'], false, 'A', $currRev['postid'] );
 
-		if ($posturl)
-			$html .= '<p><a href="' . $posturl . '">&laquo; ' . qa_lang_html('edithistory/back_to_post') . '</a></p>';
+		if (!empty($posturl))
+			$html .= '<p><a href="' . $posturl . '">' . qa_lang_html('edithistory/back_to_post') . '</a></p>';
 
 		$num_revs = count($revisions);
 		foreach ( $revisions as $i=>$rev )

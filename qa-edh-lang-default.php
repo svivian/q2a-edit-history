@@ -8,10 +8,10 @@ return array(
 	'plugin_title' => 'Edit History',
 
 	'main_title' => 'Recent post edits',
-	'revision_title' => 'Edit history for post #^',
+	'revision_title' => 'Revisions for post #^',
 
 	'no_revisions' => 'No revisions for this post',
-	'back_to_post' => 'Back to post',
+	'back_to_post' => 'Return to post',
 	'edited_when_by' => 'Edited ^1 by ^2',
 	'original_post_by' => 'Posted ^1 by ^2',
 
