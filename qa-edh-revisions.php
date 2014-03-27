@@ -85,6 +85,7 @@ class qa_edh_revisions
 			return;
 		}
 
+		// get revisions from oldest to newest
 		$revisions = $this->db_get_revisions($postid);
 
 		// return 404 if no revisions
@@ -111,13 +112,13 @@ class qa_edh_revisions
 		// get user handles
 		$usernames = qa_userids_to_handles($userids);
 
-		// run diff algorithm
-		$revisions = array_reverse( $revisions );
+		// first set diff of oldest revision to its content
 		$revisions[0]['diff_title'] = trim($revisions[0]['title']);
 		$revisions[0]['diff_content'] = $revisions[0]['content'];
 		$revisions[0]['handle'] = $usernames[$revisions[0]['userid']];
 		$len = count($revisions);
 
+		// run diff algorithm against previous revision in turn
 		for ( $i = 1; $i < $len; $i++ )
 		{
 			$rc =& $revisions[$i];
@@ -132,37 +133,40 @@ class qa_edh_revisions
 		$revisions[0]['edited'] = $revisions[$len-1]['updated'];
 		$revisions[0]['editedby'] = $revisions[$len-1]['handle'];
 
-		// $revisions = array_reverse( $revisions );
+		$revisions = array_reverse( $revisions );
 
 		// display results
 		$posturl = null;
-		if ($original['type'] == 'Q')
-			$posturl = qa_q_path_html( $original['postid'], $original['title'] );
-		else if ($original['type'] == 'A')
+		// qa_debug($revisions);
+		if ($revisions[0]['type'] == 'Q')
+			$posturl = qa_q_path_html( $revisions[0]['postid'], $revisions[0]['title'] );
+		else if ($revisions[0]['type'] == 'A')
 			$posturl = '';
 
 		$this->html_output($qa_content, $revisions, $postid, $posturl);
 	}
 
+	// return array containing the post at each revision, oldest first
 	private function db_get_revisions($postid)
 	{
-		// get latest version of post
+		// get previous revisions from qa_edit_history
+		$sql =
+			'SELECT postid, userid, UNIX_TIMESTAMP(updated) AS updated, title, content, tags
+			 FROM ^edit_history
+			 WHERE postid=#
+			 ORDER BY updated';
+		$result = qa_db_query_sub( $sql, $postid );
+		$revisions = qa_db_read_all_assoc($result);
+
+		// get latest version of post from qa_posts
 		$sql =
 			'SELECT postid, type, format, userid, UNIX_TIMESTAMP(created) AS updated, title, content, tags
 			 FROM ^posts
 			 WHERE postid=#';
 		$result = qa_db_query_sub( $sql, $postid );
-		$original = qa_db_read_one_assoc( $result, true );
+		$current = qa_db_read_one_assoc( $result, true );
 
-		// get previous revisions
-		$sql =
-			'SELECT postid, userid, UNIX_TIMESTAMP(updated) AS updated, title, content, tags
-			 FROM ^edit_history
-			 WHERE postid=#
-			 ORDER BY updated DESC';
-		$result = qa_db_query_sub( $sql, $postid );
-
-		return array_merge( array($original), qa_db_read_all_assoc($result) );
+		return array_merge($revisions, array($current));
 	}
 
 	private function html_output(&$qa_content, &$revisions, $postid, $posturl)
@@ -172,17 +176,17 @@ class qa_edh_revisions
 		if ($posturl)
 			$html .= '<p><a href="' . $posturl . '">&laquo; ' . qa_lang_html('edithistory/back_to_post') . '</a></p>';
 
+		$num_revs = count($revisions);
 		foreach ( $revisions as $i=>$rev )
 		{
 			$updated = implode( '', qa_when_to_html($rev['edited'], $this->options['fulldatedays']) );
 			$userlink = $this->user_handle_link($rev['editedby']);
-			$langkey = $i > 0 ? 'edithistory/edited_when_by' : 'edithistory/original_post_by';
+			$langkey = $i < $num_revs-1 ? 'edithistory/edited_when_by' : 'edithistory/original_post_by';
 
 			$edited_when_by = strtr(qa_lang_html($langkey), array(
 				'^1' => $updated,
 				'^2' => $userlink,
 			));
-
 
 			$html .= '<div class="diff-block">' . "\n";
 			$html .= '  <div class="diff-date">' . $edited_when_by . '</div>' . "\n";
