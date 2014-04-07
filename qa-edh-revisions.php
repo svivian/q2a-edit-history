@@ -242,6 +242,15 @@ class qa_edh_revisions
 		$qh[] = '.diff-button.qa-form-tall-button { font-size: 11px; font-weight: normal; padding: 2px 10px 3px; } ';
 		$qh[] = '</style>';
 
+		$qa_content['script_onloads'][] = array(
+			'$("button[name=revert]").click(function() {',
+			'	return window.confirm("' . qa_lang_html('edithistory/revert_warning') . '");',
+			'});',
+			'$("button[name=delete]").click(function() {',
+			'	return window.confirm("' . qa_lang_html('edithistory/delete_warning') . '");',
+			'});',
+		);
+
 		$qa_content['title'] = qa_lang_html_sub('edithistory/revision_title', $postid);
 		$qa_content['custom'] = $html;
 	}

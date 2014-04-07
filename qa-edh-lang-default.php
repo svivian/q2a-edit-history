@@ -20,7 +20,7 @@ return array(
 	'revert' => 'Revert',
 	'revert_warning' => 'Are you sure you want to roll back to this revision?',
 	'delete' => 'Delete',
-	'delete_warning' => 'Are you sure you want to DELETE this revision?',
+	'delete_warning' => 'Are you sure you want to DELETE this revision? There is no undo.',
 
 	'need_login' => 'Please ^1log in^2 or ^3register^4 to view this page.',
 	'no_user_perms' => 'Sorry, you do not have permission to view this page.',
