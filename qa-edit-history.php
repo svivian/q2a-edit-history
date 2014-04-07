@@ -129,7 +129,7 @@ class qa_edit_history
 	{
 		// only interested in edits
 		$attachevents = array('q_edit', 'a_edit');
-		if (!in_array( $event, $attachevents ))
+		if (!in_array($event, $attachevents))
 			return;
 
 		// question title or content was not changed

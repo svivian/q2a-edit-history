@@ -11,7 +11,7 @@ class qa_edh_revisions
 	private $reqmatch = '#revisions(/([0-9]+))?$#';
 	private $options; // stores relevant options
 
-	public function load_module( $directory, $urltoroot )
+	public function load_module($directory, $urltoroot)
 	{
 		$this->directory = $directory;
 		$this->urltoroot = $urltoroot;
@@ -31,7 +31,7 @@ class qa_edh_revisions
 	public function match_request($request)
 	{
 		// validates the postid so we don't need to do this later
-		return preg_match( $this->reqmatch, $request ) > 0;
+		return preg_match($this->reqmatch, $request) > 0;
 	}
 
 	public function process_request($request)
@@ -44,27 +44,21 @@ class qa_edh_revisions
 	{
 		require $this->directory.'class.diff-string.php';
 		$qa_content = qa_content_prepare();
-		preg_match( $this->reqmatch, $request, $matches );
+		preg_match($this->reqmatch, $request, $matches);
 
-		if ( isset($matches[2]) )
+		if (isset($matches[2]))
 		{
 			$revertid = qa_post_text('revert');
+			// revert a revision
 			if ($revertid !== null)
-			{
-				// revert a revision
 				$this->revert_revision($qa_content, $matches[2], $revertid);
-			}
+			// post revisions: list all edits to this post
 			else
-			{
-				// post revisions: list all edits to this post
 				$this->post_revisions($qa_content, $matches[2]);
-			}
 		}
+		// main page: list recent revisions
 		else
-		{
-			// main page: list recent revisions
-			$this->recent_edits( $qa_content );
-		}
+			$this->recent_edits($qa_content);
 
 		return $qa_content;
 	}
@@ -83,12 +77,12 @@ class qa_edh_revisions
 
 		// check user is allowed to view edit history
 		$error = qa_user_permit_error('edit_history_view_perms');
-		if ( $error === 'login' )
+		if ($error === 'login')
 		{
 			$qa_content['error'] = qa_insert_login_links( qa_lang_html('edithistory/need_login'), qa_request() );
 			return;
 		}
-		else if ( $error !== false )
+		else if ($error !== false)
 		{
 			$qa_content['error'] = qa_lang_html('edithistory/no_user_perms');
 			return;
@@ -98,7 +92,7 @@ class qa_edh_revisions
 		$revisions = $this->db_get_revisions($postid);
 
 		// return 404 if no revisions
-		if ( count($revisions) <= 1 )
+		if (count($revisions) <= 1)
 		{
 			header('HTTP/1.0 404 Not Found');
 			$qa_content['error'] = qa_lang_html('edithistory/no_revisions');
@@ -107,10 +101,13 @@ class qa_edh_revisions
 
 		// censor posts; build list of userids as we go
 		require_once QA_INCLUDE_DIR.'qa-util-string.php';
-		$this->options = array( 'blockwordspreg' => qa_get_block_words_preg(), 'fulldatedays' => qa_opt('show_full_date_days') );
+		$this->options = array(
+			'blockwordspreg' => qa_get_block_words_preg(),
+			'fulldatedays' => qa_opt('show_full_date_days'),
+		);
 		$userids = array();
 
-		foreach ( $revisions as &$rev )
+		foreach ($revisions as &$rev)
 		{
 			$rev['title'] = qa_block_words_replace( $rev['title'], $this->options['blockwordspreg'] );
 			$rev['content'] = qa_block_words_replace( $rev['content'], $this->options['blockwordspreg'] );
@@ -129,7 +126,7 @@ class qa_edh_revisions
 		$len = count($revisions);
 
 		// run diff algorithm against each previous revision in turn
-		for ( $i = 1; $i < $len; $i++ )
+		for ($i = 1; $i < $len; $i++)
 		{
 			$rc =& $revisions[$i];
 			$rp =& $revisions[$i-1];
@@ -162,7 +159,7 @@ class qa_edh_revisions
 			 FROM ^edit_history
 			 WHERE postid=#
 			 ORDER BY updated';
-		$result = qa_db_query_sub( $sql, $postid );
+		$result = qa_db_query_sub($sql, $postid);
 		$revisions = qa_db_read_all_assoc($result);
 
 		// get latest version of post from qa_posts
@@ -170,8 +167,8 @@ class qa_edh_revisions
 			'SELECT postid, type, parentid, userid, format, UNIX_TIMESTAMP(created) AS updated, title, content, tags
 			 FROM ^posts
 			 WHERE postid=#';
-		$result = qa_db_query_sub( $sql, $postid );
-		$current = qa_db_read_one_assoc( $result, true );
+		$result = qa_db_query_sub($sql, $postid);
+		$current = qa_db_read_one_assoc($result, true);
 
 		return array_merge($revisions, array($current));
 	}
@@ -183,15 +180,15 @@ class qa_edh_revisions
 		// create link back to post
 		$currRev = $revisions[0];
 		if ($currRev['type'] == 'Q')
-			$posturl = qa_q_path_html( $currRev['postid'], $currRev['title'] );
+			$posturl = qa_q_path_html($currRev['postid'], $currRev['title']);
 		else if ($currRev['type'] == 'A')
-			$posturl = qa_q_path_html( $currRev['parentid'], $currRev['title'], false, 'A', $currRev['postid'] );
+			$posturl = qa_q_path_html($currRev['parentid'], $currRev['title'], false, 'A', $currRev['postid']);
 
 		if (!empty($posturl))
 			$html .= '<p><a href="' . $posturl . '">' . qa_lang_html('edithistory/back_to_post') . '</a></p>';
 
 		$num_revs = count($revisions);
-		foreach ( $revisions as $i=>$rev )
+		foreach ($revisions as $i=>$rev)
 		{
 			$updated = implode( '', qa_when_to_html($rev['edited'], $this->options['fulldatedays']) );
 			$userlink = $this->user_handle_link($rev['editedby']);
@@ -205,7 +202,7 @@ class qa_edh_revisions
 			$html .= '<div class="diff-block">' . "\n";
 			$html .= '  <div class="diff-date">';
 			if ($i > 0)
-				$html .= '<button type="submit" name="revert" value="'.$rev['id'].'" class="diff-revert">' . qa_lang_html('edithistory/revert') . '</button>';
+				$html .= '<button type="submit" name="revert" value="' . $rev['id'] . '" class="diff-revert">' . qa_lang_html('edithistory/revert') . '</button>';
 			else
 				$html .= '<span class="diff-revert">' . qa_lang_html('edithistory/current_revision') . '</span>';
 			$html .= $edited_when_by;

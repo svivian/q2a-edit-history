@@ -25,11 +25,7 @@
 	More about this license: http://www.gnu.org/licenses/gpl.html
 */
 
-if ( !defined('QA_VERSION') )
-{
-	header('Location: ../../');
-	exit;
-}
+if (!defined('QA_VERSION')) exit;
 
 
 qa_register_plugin_module('event', 'qa-edit-history.php', 'qa_edit_history', 'Edit History');
