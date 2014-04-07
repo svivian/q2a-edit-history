@@ -48,8 +48,17 @@ class qa_edh_revisions
 
 		if ( isset($matches[2]) )
 		{
-			// post revisions: list all edits to this post
-			$this->post_revisions( $qa_content, qa_html($matches[2]) );
+			$revertid = qa_post_text('revert');
+			if ($revertid !== null)
+			{
+				// revert a revision
+				$this->revert_revision($qa_content, $matches[2], $revertid);
+			}
+			else
+			{
+				// post revisions: list all edits to this post
+				$this->post_revisions($qa_content, $matches[2]);
+			}
 		}
 		else
 		{
@@ -113,6 +122,7 @@ class qa_edh_revisions
 		$usernames = qa_userids_to_handles($userids);
 
 		// set diff of oldest revision to its own content
+		$revisions[0]['id'] = 0;
 		$revisions[0]['diff_title'] = trim($revisions[0]['title']);
 		$revisions[0]['diff_content'] = $revisions[0]['content'];
 		$revisions[0]['handle'] = $usernames[$revisions[0]['userid']];
@@ -124,10 +134,10 @@ class qa_edh_revisions
 			$rc =& $revisions[$i];
 			$rp =& $revisions[$i-1];
 
+			$rc['id'] = $i;
 			$rc['diff_title'] = trim( diff_string::compare(qa_html($rp['title']), qa_html($rc['title'])) );
-			if ($rp['content'] === $rc['content'])
-				$rc['diff_content'] = null;
-			else
+			$rc['diff_content'] = null;
+			if ($rp['content'] !== $rc['content'])
 				$rc['diff_content'] = trim( diff_string::compare(qa_html($rp['content']), qa_html($rc['content'])) );
 
 			$rc['edited'] = $rp['updated'];
@@ -168,7 +178,8 @@ class qa_edh_revisions
 
 	private function html_output(&$qa_content, &$revisions, $postid)
 	{
-		$html = '';
+		$html = '<form action="' . qa_path_html('revisions/'.$postid) . '" method="post">';
+
 		// create link back to post
 		$currRev = $revisions[0];
 		if ($currRev['type'] == 'Q')
@@ -192,7 +203,13 @@ class qa_edh_revisions
 			));
 
 			$html .= '<div class="diff-block">' . "\n";
-			$html .= '  <div class="diff-date">' . $edited_when_by . '</div>' . "\n";
+			$html .= '  <div class="diff-date">';
+			if ($i > 0)
+				$html .= '<button type="submit" name="revert" value="'.$rev['id'].'" class="diff-revert">' . qa_lang_html('edithistory/revert') . '</button>';
+			else
+				$html .= '<span class="diff-revert">' . qa_lang_html('edithistory/current_revision') . '</span>';
+			$html .= $edited_when_by;
+			$html .= '</div>' . "\n";
 			if (!empty($rev['diff_title']))
 				$html .= '  <h2>' . $rev['diff_title'] . '</h2>' . "\n";
 			if ($rev['diff_content'])
@@ -201,6 +218,8 @@ class qa_edh_revisions
 				$html .= '  <div class="no-diff">' . qa_lang_html('edithistory/content_unchanged') . '</div>' . "\n";
 			$html .= '</div>' . "\n\n";
 		}
+
+		$html .= '</form>' . "\n\n";
 
 		$qh =& $qa_content['head_lines'];
 		// prevent search engines indexing revision pages
@@ -212,10 +231,17 @@ class qa_edh_revisions
 		$qh[] = 'ins { background-color: #d1e1ad; color: #405a04; text-decoration: none; } ';
 		$qh[] = 'del { background-color: #e5bdb2; color: #a82400; text-decoration: line-through; } ';
 		$qh[] = '.no-diff { color: #999; } ';
+		$qh[] = '.diff-revert { float: right; } ';
 		$qh[] = '</style>';
 
 		$qa_content['title'] = qa_lang_html_sub('edithistory/revision_title', $postid);
 		$qa_content['custom'] = $html;
+	}
+
+	private function revert_revision(&$qa_content, $postid, $revertid)
+	{
+		// todo
+		$qa_content['title'] = 'Revert a revision';
 	}
 
 	private function user_handle_link($handle)
