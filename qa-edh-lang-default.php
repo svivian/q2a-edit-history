@@ -14,6 +14,7 @@ return array(
 	'back_to_post' => 'Return to post',
 	'edited_when_by' => 'Edited ^1 by ^2',
 	'original_post_by' => 'Posted ^1 by ^2',
+	'content_unchanged' => '(Content unchanged)',
 
 	'need_login' => 'Please ^1log in^2 or ^3register^4 to view this page.',
 	'no_user_perms' => 'Sorry, you do not have permission to view this page.',

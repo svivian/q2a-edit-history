@@ -123,8 +123,13 @@ class qa_edh_revisions
 		{
 			$rc =& $revisions[$i];
 			$rp =& $revisions[$i-1];
+
 			$rc['diff_title'] = trim( diff_string::compare(qa_html($rp['title']), qa_html($rc['title'])) );
-			$rc['diff_content'] = trim( diff_string::compare(qa_html($rp['content']), qa_html($rc['content'])) );
+			if ($rp['content'] === $rc['content'])
+				$rc['diff_content'] = null;
+			else
+				$rc['diff_content'] = trim( diff_string::compare(qa_html($rp['content']), qa_html($rc['content'])) );
+
 			$rc['edited'] = $rp['updated'];
 			$rc['editedby'] = $rp['handle'];
 
@@ -190,7 +195,10 @@ class qa_edh_revisions
 			$html .= '  <div class="diff-date">' . $edited_when_by . '</div>' . "\n";
 			if (!empty($rev['diff_title']))
 				$html .= '  <h2>' . $rev['diff_title'] . '</h2>' . "\n";
-			$html .= '  <div>' . nl2br($rev['diff_content']) . '</div>' . "\n";
+			if ($rev['diff_content'])
+				$html .= '  <div>' . nl2br($rev['diff_content']) . '</div>' . "\n";
+			else
+				$html .= '  <div class="no-diff">' . qa_lang_html('edithistory/content_unchanged') . '</div>' . "\n";
 			$html .= '</div>' . "\n\n";
 		}
 
@@ -203,6 +211,7 @@ class qa_edh_revisions
 		$qh[] = '.diff-date { margin: 5px 0; padding: 3px 6px; background: #eee; color: #000; } ';
 		$qh[] = 'ins { background-color: #d1e1ad; color: #405a04; text-decoration: none; } ';
 		$qh[] = 'del { background-color: #e5bdb2; color: #a82400; text-decoration: line-through; } ';
+		$qh[] = '.no-diff { color: #999; } ';
 		$qh[] = '</style>';
 
 		$qa_content['title'] = qa_lang_html_sub('edithistory/revision_title', $postid);
