@@ -217,12 +217,14 @@ class qa_edh_revisions
 			$html .= $edited_when_by;
 			$html .= '</div>' . "\n";
 
+			$html .= '  <div class="diff-content">';
 			if (!empty($rev['diff_title']))
-				$html .= '  <h2>' . $rev['diff_title'] . '</h2>' . "\n";
+				$html .= '    <p class="h2">' . $rev['diff_title'] . '</p>' . "\n";
 			if ($rev['diff_content'])
-				$html .= '  <div>' . nl2br($rev['diff_content']) . '</div>' . "\n";
+				$html .= '    <div>' . nl2br($rev['diff_content']) . '</div>' . "\n";
 			else
-				$html .= '  <div class="no-diff">' . qa_lang_html('edithistory/content_unchanged') . '</div>' . "\n";
+				$html .= '    <div class="no-diff">' . qa_lang_html('edithistory/content_unchanged') . '</div>' . "\n";
+			$html .= '</div>' . "\n";
 			$html .= '</div>' . "\n\n";
 		}
 
@@ -232,14 +234,10 @@ class qa_edh_revisions
 		// prevent search engines indexing revision pages
 		$qh[] = '<meta name="robots" content="noindex,follow">';
 		// styles for this page
+		$csslines = file_get_contents($this->directory.'revisions.css');
+		$mincss = preg_replace('~\s+~', ' ', $csslines);
 		$qh[] = '<style>';
-		$qh[] = '.diff-block { padding-bottom: 20px; margin-bottom: 20px; } ';
-		$qh[] = '.diff-date { margin: 5px 0; padding: 3px 6px; line-height: 26px; background: #eee; color: #000; } ';
-		$qh[] = 'ins { background-color: #d1e1ad; color: #405a04; text-decoration: none; } ';
-		$qh[] = 'del { background-color: #e5bdb2; color: #a82400; text-decoration: line-through; } ';
-		$qh[] = '.no-diff { color: #999; } ';
-		$qh[] = '.diff-button { float: right; } ';
-		$qh[] = '.diff-button.qa-form-tall-button { font-size: 11px; font-weight: normal; padding: 2px 10px 3px; } ';
+		$qh[] = $mincss;
 		$qh[] = '</style>';
 
 		$qa_content['script_onloads'][] = array(

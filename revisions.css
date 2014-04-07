@@ -1,0 +1,48 @@
+
+.diff-block {
+	margin: 0 0 20px;
+	border: 1px solid #ccc;
+}
+.diff-date {
+	margin: 0;
+	padding: 5px 10px;
+	line-height: 26px;
+	border-bottom: 1px solid #ccc;
+	background: #eee;
+	color: #000;
+}
+.diff-content {
+	padding: 10px;
+}
+
+ins {
+	background-color: #d1e1ad;
+	color: #405a04;
+	text-decoration: none;
+}
+del {
+	background-color: #e5bdb2;
+	color: #a82400;
+	text-decoration: line-through;
+}
+
+.h2 {
+	font-weight: bold;
+	font-size: 1.4em;
+}
+
+.no-diff {
+	color: #999;
+}
+
+.diff-button {
+	float: right;
+}
+.diff-button.qa-form-tall-button {
+	font-size: 11px;
+	font-weight: normal;
+	padding: 2px 10px 3px;
+}
+
+
+
