@@ -10,18 +10,21 @@ class qa_edit_history
 {
 	private $pluginkey = 'edit_history';
 	private $opt_active = 'edit_history_active';
-	private $opt_perms = 'edit_history_view_perms';
 	private $opt_ninja = 'edit_history_ninja';
+	private $opt_perms = 'edit_history_view_perms';
+	private $opt_admin = 'edit_history_admin_perms';
 
 	public function option_default($option)
 	{
 		switch ($option) {
-			case 'edit_history_active':
+			case $this->opt_active:
 				return 0;
-			case 'edit_history_view_perms':
-				return QA_PERMIT_USERS;
-			case 'edit_history_ninja':
+			case $this->opt_ninja:
 				return 300;
+			case $this->opt_perms:
+				return QA_PERMIT_USERS;
+			case $this->opt_admin:
+				return QA_PERMIT_ADMINS;
 		}
 
 		return null;
@@ -60,53 +63,62 @@ class qa_edit_history
 			$active = qa_post_text('eh_active') ? '1' : '0';
 			qa_opt($this->opt_active, $active);
 
-			qa_opt($this->opt_perms, qa_post_text('eh_user_perms'));
 			qa_opt($this->opt_ninja, qa_post_text('eh_ninja_time'));
+			qa_opt($this->opt_perms, qa_post_text('eh_user_perms'));
+			qa_opt($this->opt_admin, qa_post_text('eh_user_admin'));
 
 			$saved_msg = qa_lang_html('admin/options_saved');
 		}
 
-		// plugin state
-		$active_field = array(
-			'label' => qa_lang_html('edithistory/admin_active'),
-			'note' => qa_lang_html('edithistory/admin_active_note'),
-			'type' => 'checkbox',
-			'tags' => 'name="eh_active"',
-			'value' => qa_opt($this->opt_active) === '1',
-		);
-
 		// get list of user permissions
 		require_once QA_INCLUDE_DIR.'qa-app-options.php';
-		$permitoptions = qa_admin_permit_options(QA_PERMIT_ALL, QA_PERMIT_SUPERS, false, false);
+		$permitopts_view = qa_admin_permit_options(QA_PERMIT_ALL, QA_PERMIT_SUPERS, false, false);
+		$permitopts_admin = qa_admin_permit_options(QA_PERMIT_ALL, QA_PERMIT_SUPERS, false, false);
+		// check if options are set
 		$view_perms = qa_opt($this->opt_perms);
-		$selected = isset($permitoptions[$view_perms]) ? $permitoptions[$view_perms] : QA_PERMIT_ALL;
-
-		$perms_field = array(
-			'label' => qa_lang_html('edithistory/admin_perms'),
-			'note' => qa_lang_html('edithistory/admin_perms_note'),
-			'type' => 'select',
-			'tags' => 'name="eh_user_perms"',
-			'options' => $permitoptions,
-			'value' => $selected,
-		);
-
-		// ninja edit time option
-		$ninja_field = array(
-			'label' => qa_lang_html('edithistory/admin_ninja'),
-			'note' => qa_lang_html('edithistory/admin_ninja_note'),
-			'type' => 'number',
-			'tags' => 'name="eh_ninja_time"',
-			'value' => qa_opt($this->opt_ninja),
-		);
+		$admin_perms = qa_opt($this->opt_admin);
+		$sel_perms = isset($permitopts_view[$view_perms]) ? $permitopts_view[$view_perms] : $this->option_default($this->opt_perms);
+		$sel_admin = isset($permitopts_admin[$admin_perms]) ? $permitopts_admin[$admin_perms] : $this->option_default($this->opt_admin);
 
 		$form = array(
 			'ok' => $saved_msg,
 			'style' => 'wide',
 
 			'fields' => array(
-				$active_field,
-				$perms_field,
-				$ninja_field,
+				// plugin state
+				array(
+					'label' => qa_lang_html('edithistory/admin_active'),
+					'note' => qa_lang_html('edithistory/admin_active_note'),
+					'type' => 'checkbox',
+					'tags' => 'name="eh_active"',
+					'value' => qa_opt($this->opt_active) === '1',
+				),
+				// ninja edit time
+				array(
+					'label' => qa_lang_html('edithistory/admin_ninja'),
+					'note' => qa_lang_html('edithistory/admin_ninja_note'),
+					'type' => 'number',
+					'tags' => 'name="eh_ninja_time"',
+					'value' => qa_opt($this->opt_ninja),
+				),
+				// viewing permissions
+				array(
+					'label' => qa_lang_html('edithistory/admin_perms'),
+					'note' => qa_lang_html('edithistory/admin_perms_note'),
+					'type' => 'select',
+					'tags' => 'name="eh_user_perms"',
+					'options' => $permitopts_view,
+					'value' => $sel_perms,
+				),
+				// reverting/deleting permissions
+				array(
+					'label' => qa_lang_html('edithistory/admin_revert'),
+					'note' => qa_lang_html('edithistory/admin_revert_note'),
+					'type' => 'select',
+					'tags' => 'name="eh_user_admin"',
+					'options' => $permitopts_admin,
+					'value' => $sel_admin,
+				),
 			),
 
 			'buttons' => array(

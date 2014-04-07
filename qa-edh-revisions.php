@@ -35,12 +35,6 @@ class qa_edh_revisions
 	}
 
 	public function process_request($request)
-/*
-	Post edits are stored in a special way. The `qa_posts` tables contains the latest version displayed (obviously).
-	The `qa_edit_history` table stores each previous revision, with the time it was updated to the later one.
-	So each time applies to the next revision, with `qa_posts.created` being when the first revision from
-	`qa_edit_history` was posted.
-*/
 	{
 		require $this->directory.'class.diff-string.php';
 		$qa_content = qa_content_prepare();
@@ -52,10 +46,10 @@ class qa_edh_revisions
 			$deleteid = qa_post_text('delete');
 			// revert a revision
 			if ($revertid !== null)
-				$this->revert_revision($matches[2], $revertid);
+				$this->revert_revision($qa_content, $matches[2], $revertid);
 			// delete a revision
 			else if ($deleteid !== null)
-				$this->delete_revision($matches[2], $revertid);
+				$this->delete_revision($qa_content, $matches[2], $revertid);
 			// post revisions: list all edits to this post
 			else
 				$this->post_revisions($qa_content, $matches[2]);
@@ -67,30 +61,34 @@ class qa_edh_revisions
 		return $qa_content;
 	}
 
+
 	// Display all recent edits
 	private function recent_edits(&$qa_content)
-	{
-		$qa_content['title'] = qa_lang_html('edithistory/main_title');
-		$qa_content['custom'] = '<p>This page will list posts that have been edited recently.</p>';
-	}
-
-	// Display all the edits made to a post ($postid already validated)
-	private function post_revisions(&$qa_content, $postid)
 	{
 		$qa_content['title'] = qa_lang_html('edithistory/plugin_title');
 
 		// check user is allowed to view edit history
-		$error = qa_user_permit_error('edit_history_view_perms');
-		if ($error === 'login')
-		{
-			$qa_content['error'] = qa_insert_login_links( qa_lang_html('edithistory/need_login'), qa_request() );
+		if (!$this->view_permit($qa_content))
 			return;
-		}
-		else if ($error !== false)
-		{
-			$qa_content['error'] = qa_lang_html('edithistory/no_user_perms');
+
+		$qa_content['title'] = qa_lang_html('edithistory/main_title');
+		$qa_content['custom'] = '<p>This page will list posts that have been edited recently.</p>';
+	}
+
+	private function post_revisions(&$qa_content, $postid)
+/*
+	Display all the edits made to a post ($postid already validated).
+	Post edits are stored in a special way. The `qa_posts` tables contains the latest version displayed (obviously).
+	The `qa_edit_history` table stores each previous revision, with the time it was updated to the later one.
+	So each time applies to the next revision, with `qa_posts.created` being when the first revision from
+	`qa_edit_history` was posted.
+*/
+	{
+		$qa_content['title'] = qa_lang_html('edithistory/plugin_title');
+
+		// check user is allowed to view edit history
+		if (!$this->view_permit($qa_content))
 			return;
-		}
 
 		// get revisions from oldest to newest
 		$revisions = $this->db_get_revisions($postid);
@@ -154,6 +152,30 @@ class qa_edh_revisions
 		$this->html_output($qa_content, $revisions, $postid);
 	}
 
+	// check page viewing permissions (handles error messages)
+	private function view_permit(&$qa_content)
+	{
+		$error = qa_user_permit_error('edit_history_view_perms');
+		if ($error === 'login')
+		{
+			$qa_content['error'] = qa_insert_login_links( qa_lang_html('edithistory/need_login'), qa_request() );
+			return false;
+		}
+		else if ($error !== false)
+		{
+			$qa_content['error'] = qa_lang_html('edithistory/no_user_perms');
+			return false;
+		}
+
+		return true;
+	}
+
+	// check revert/delete permissions
+	private function admin_permit()
+	{
+		return qa_user_permit_error('edit_history_admin_perms') === false;
+	}
+
 	// return array containing the post at each revision, oldest first
 	private function db_get_revisions($postid)
 	{
@@ -191,6 +213,8 @@ class qa_edh_revisions
 		if (!empty($posturl))
 			$html .= '<p><a href="' . $posturl . '">' . qa_lang_html('edithistory/back_to_post') . '</a></p>';
 
+		$show_buttons = $this->admin_permit();
+
 		$num_revs = count($revisions);
 		foreach ($revisions as $i=>$rev)
 		{
@@ -205,15 +229,14 @@ class qa_edh_revisions
 
 			$html .= '<div class="diff-block">' . "\n";
 			$html .= '  <div class="diff-date">';
-			if ($i > 0) {
+			if ($i == 0)
+				$html .= '<span class="diff-button">' . qa_lang_html('edithistory/current_revision') . '</span>';
+			else if ($show_buttons) {
 				$html .= '<button type="submit" name="delete" value="' . $rev['id'] . '" class="diff-button qa-form-tall-button qa-form-tall-button-cancel">' .
 					qa_lang('edithistory/delete') . '</button>';
 				$html .= '<button type="submit" name="revert" value="' . $rev['id'] . '" class="diff-button qa-form-tall-button qa-form-tall-button-reset">' .
 					qa_lang('edithistory/revert') . '</button>';
 			}
-			else
-				$html .= '<span class="diff-button">' . qa_lang_html('edithistory/current_revision') . '</span>';
-
 			$html .= $edited_when_by;
 			$html .= '</div>' . "\n";
 
@@ -253,8 +276,15 @@ class qa_edh_revisions
 		$qa_content['custom'] = $html;
 	}
 
-	private function revert_revision($postid, $revid)
+	// roll back post to an earlier version
+	private function revert_revision(&$qa_content, $postid, $revid)
 	{
+		if (!$this->admin_permit())
+		{
+			$qa_content['error'] = qa_lang_html('edithistory/no_user_perms');
+			return false;
+		}
+
 		require_once QA_INCLUDE_DIR.'qa-app-posts.php';
 		$revisions = $this->db_get_revisions($postid);
 
@@ -262,8 +292,15 @@ class qa_edh_revisions
 		qa_redirect('revisions/'.$postid);
 	}
 
-	private function delete_revision($postid, $revid)
+	// delete an old revision
+	private function delete_revision(&$qa_content, $postid, $revid)
 	{
+		if (!$this->admin_permit())
+		{
+			$qa_content['error'] = qa_lang_html('edithistory/no_user_perms');
+			return false;
+		}
+
 		// require_once QA_INCLUDE_DIR.'qa-app-posts.php';
 		// $revisions = $this->db_get_revisions($postid);
 		// qa_post_set_content($postid, $revisions[$revid]['title'], $revisions[$revid]['content']);

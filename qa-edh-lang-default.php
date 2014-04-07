@@ -35,6 +35,6 @@ return array(
 
 	'admin_perms' => 'Edit History visible for',
 	'admin_perms_note' => 'User level allowed to see post revisions.',
-	'admin_revert' => 'Reverting available for',
-	'admin_revert_note' => 'User level allowed to see roll back revisions.',
+	'admin_revert' => 'Reverting/Deleting available for',
+	'admin_revert_note' => 'User level allowed to roll back and delete revisions.',
 );
