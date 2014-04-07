@@ -288,7 +288,7 @@ class qa_edh_revisions
 		require_once QA_INCLUDE_DIR.'qa-app-posts.php';
 		$revisions = $this->db_get_revisions($postid);
 
-		qa_post_set_content($postid, $revisions[$revid]['title'], $revisions[$revid]['content']);
+		qa_post_set_content($postid, $revisions[$revid]['title'], $revisions[$revid]['content'], null, null, null, null, qa_get_logged_in_userid());
 		qa_redirect('revisions/'.$postid);
 	}
 
