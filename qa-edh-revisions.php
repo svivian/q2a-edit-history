@@ -49,9 +49,13 @@ class qa_edh_revisions
 		if (isset($matches[2]))
 		{
 			$revertid = qa_post_text('revert');
+			$deleteid = qa_post_text('delete');
 			// revert a revision
 			if ($revertid !== null)
-				$this->revert_revision($qa_content, $matches[2], $revertid);
+				$this->revert_revision($matches[2], $revertid);
+			// delete a revision
+			else if ($deleteid !== null)
+				$this->delete_revision($matches[2], $revertid);
 			// post revisions: list all edits to this post
 			else
 				$this->post_revisions($qa_content, $matches[2]);
@@ -201,12 +205,18 @@ class qa_edh_revisions
 
 			$html .= '<div class="diff-block">' . "\n";
 			$html .= '  <div class="diff-date">';
-			if ($i > 0)
-				$html .= '<button type="submit" name="revert" value="' . $rev['id'] . '" class="diff-revert">' . qa_lang_html('edithistory/revert') . '</button>';
+			if ($i > 0) {
+				$html .= '<button type="submit" name="delete" value="' . $rev['id'] . '" class="diff-button qa-form-tall-button qa-form-tall-button-cancel">' .
+					qa_lang('edithistory/delete') . '</button>';
+				$html .= '<button type="submit" name="revert" value="' . $rev['id'] . '" class="diff-button qa-form-tall-button qa-form-tall-button-reset">' .
+					qa_lang('edithistory/revert') . '</button>';
+			}
 			else
-				$html .= '<span class="diff-revert">' . qa_lang_html('edithistory/current_revision') . '</span>';
+				$html .= '<span class="diff-button">' . qa_lang_html('edithistory/current_revision') . '</span>';
+
 			$html .= $edited_when_by;
 			$html .= '</div>' . "\n";
+
 			if (!empty($rev['diff_title']))
 				$html .= '  <h2>' . $rev['diff_title'] . '</h2>' . "\n";
 			if ($rev['diff_content'])
@@ -224,21 +234,33 @@ class qa_edh_revisions
 		// styles for this page
 		$qh[] = '<style>';
 		$qh[] = '.diff-block { padding-bottom: 20px; margin-bottom: 20px; } ';
-		$qh[] = '.diff-date { margin: 5px 0; padding: 3px 6px; background: #eee; color: #000; } ';
+		$qh[] = '.diff-date { margin: 5px 0; padding: 3px 6px; line-height: 26px; background: #eee; color: #000; } ';
 		$qh[] = 'ins { background-color: #d1e1ad; color: #405a04; text-decoration: none; } ';
 		$qh[] = 'del { background-color: #e5bdb2; color: #a82400; text-decoration: line-through; } ';
 		$qh[] = '.no-diff { color: #999; } ';
-		$qh[] = '.diff-revert { float: right; } ';
+		$qh[] = '.diff-button { float: right; } ';
+		$qh[] = '.diff-button.qa-form-tall-button { font-size: 11px; font-weight: normal; padding: 2px 10px 3px; } ';
 		$qh[] = '</style>';
 
 		$qa_content['title'] = qa_lang_html_sub('edithistory/revision_title', $postid);
 		$qa_content['custom'] = $html;
 	}
 
-	private function revert_revision(&$qa_content, $postid, $revertid)
+	private function revert_revision($postid, $revid)
 	{
-		// todo
-		$qa_content['title'] = 'Revert a revision';
+		require_once QA_INCLUDE_DIR.'qa-app-posts.php';
+		$revisions = $this->db_get_revisions($postid);
+
+		qa_post_set_content($postid, $revisions[$revid]['title'], $revisions[$revid]['content']);
+		qa_redirect('revisions/'.$postid);
+	}
+
+	private function delete_revision($postid, $revid)
+	{
+		// require_once QA_INCLUDE_DIR.'qa-app-posts.php';
+		// $revisions = $this->db_get_revisions($postid);
+		// qa_post_set_content($postid, $revisions[$revid]['title'], $revisions[$revid]['content']);
+		// qa_redirect('revisions/'.$postid);
 	}
 
 	private function user_handle_link($handle)
