@@ -78,10 +78,15 @@ class qa_edh_revisions
 	private function post_revisions(&$qa_content, $postid)
 /*
 	Display all the edits made to a post ($postid already validated).
-	Post edits are stored in a special way. The `qa_posts` tables contains the latest version displayed (obviously).
-	The `qa_edit_history` table stores each previous revision, with the time it was updated to the later one.
-	So each time applies to the next revision, with `qa_posts.created` being when the first revision from
-	`qa_edit_history` was posted.
+	Post edits are stored in a special way:
+	- The `qa_posts` table contains the latest version displayed, as expected. The `qa_edit_history`
+	  table stores each previous revision, with the time and user of the later one.
+	- Each time applies to the next revision, with `qa_posts.created` being when the first revision
+	  from `qa_edit_history` was posted. The time of the latest revision should match
+	  `qa_posts.updated`.
+	- Similarly for users, `qa_posts.userid` is the author of the first revision, while
+	  `qa_edit_history.userid` specifies who made the next revision. The userid of the latest
+	  revision should match `qa_posts.lastuserid`.
 */
 	{
 		$qa_content['title'] = qa_lang_html('edithistory/plugin_title');
@@ -232,8 +237,8 @@ class qa_edh_revisions
 			if ($i == 0)
 				$html .= '<span class="diff-button">' . qa_lang_html('edithistory/current_revision') . '</span>';
 			else if ($show_buttons) {
-				$html .= '<button type="submit" name="delete" value="' . $rev['id'] . '" class="diff-button qa-form-tall-button qa-form-tall-button-cancel">' .
-					qa_lang('edithistory/delete') . '</button>';
+				// $html .= '<button type="submit" name="delete" value="' . $rev['id'] . '" class="diff-button qa-form-tall-button qa-form-tall-button-cancel">' .
+				// 	qa_lang('edithistory/delete') . '</button>';
 				$html .= '<button type="submit" name="revert" value="' . $rev['id'] . '" class="diff-button qa-form-tall-button qa-form-tall-button-reset">' .
 					qa_lang('edithistory/revert') . '</button>';
 			}

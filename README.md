@@ -1,7 +1,8 @@
+
 Edit History plugin for Question2Answer
 =================================================
 
-This is an event plugin for [Question2Answer](http://www.question2answer.org). It stores all edits to posts, allowing users to see what was changed.
+This is an event plugin for [Question2Answer](http://www.question2answer.org). It stores all edits to posts, allowing users/admins to see what was changed.
 
 
 Installation & Usage
@@ -21,6 +22,14 @@ Installation & Usage
 
 Version history
 -------------------------------------------------
+
+### 1.4:
+
+- Allow reverting of edits to earlier revision and option to control permission level (default Admin).
+- Hide content if only title changed.
+- Newly designed revision page, CSS moved to separate file.
+
+Note: this version requires a database upgrade.
 
 ### 1.3:
 
