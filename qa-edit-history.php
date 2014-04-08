@@ -32,24 +32,37 @@ class qa_edit_history
 
 	public function init_queries($tableslc)
 	{
+		$queries = array(
+			// [0]: version 1
+			'CREATE TABLE IF NOT EXISTS ^'.$this->pluginkey.' (
+			   postid int(10) unsigned NOT NULL,
+			   updated datetime NOT NULL,
+			   title varchar(800) DEFAULT NULL,
+			   content varchar(8000) DEFAULT NULL,
+			   tags varchar(800) DEFAULT NULL,
+			   userid int(10) unsigned DEFAULT NULL,
+			   reason varchar(800) DEFAULT NULL,
+			   PRIMARY KEY (postid, updated)
+			 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;',
+
+			// [1-3]: version 2
+			'ALTER TABLE ^'.$this->pluginkey.' DROP PRIMARY KEY;',
+			'ALTER TABLE ^'.$this->pluginkey.' ADD id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;',
+			'ALTER TABLE ^'.$this->pluginkey.' ADD UNIQUE(postid, updated, userid);',
+		);
 		$tablename = qa_db_add_table_prefix($this->pluginkey);
 
-		if (!in_array($tablename, $tableslc)) {
-			$sql =
-				'CREATE TABLE IF NOT EXISTS ^'.$this->pluginkey.' ( ' .
-				'`postid` int(10) unsigned NOT NULL, ' .
-				'`updated` datetime NOT NULL, ' .
-				'`title` varchar(800) DEFAULT NULL, ' .
-				'`content` varchar(8000) DEFAULT NULL, ' .
-				'`tags` varchar(800) DEFAULT NULL, ' .
-				'`userid` int(10) unsigned DEFAULT NULL, ' .
-				'`reason` varchar(800) DEFAULT NULL, ' .
-				'PRIMARY KEY (`postid`,`updated`) ' .
-				') ENGINE=InnoDB DEFAULT CHARSET=utf8;';
+		// no edit history table: run all queries
+		if (!in_array($tablename, $tableslc))
+			return $queries;
 
-			return array($sql);
-		}
+		// table exists: check if it's at current version
+		$sqlCols = 'SHOW COLUMNS FROM ^'.$this->pluginkey;
+		$fields = qa_db_read_all_values(qa_db_query_sub($sqlCols));
+		if (!in_array('id', $fields))
+			return array_slice($queries, 1);
 
+		// all up to date
 		return null;
 	}
 
