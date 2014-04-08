@@ -177,18 +177,29 @@ class qa_edit_history
 		// new posts have a NULL updated time
 		if ($lastupdate == null)
 			$lastupdate = $params[$oldkey]['created'];
-		if (abs($now-$lastupdate) < qa_opt($this->opt_ninja))
+
+		// need last user to check ninja edits
+		$lastuserid = $this->db_last_userid($params['postid']);
+		if ($userid == $lastuserid && abs($now-$lastupdate) < qa_opt($this->opt_ninja))
 			return;
 
 		return $this->db_insert_edit($params);
 	}
 
+	// get user of the last revision
+	private function db_last_userid($postid)
+	{
+		$sql = 'SELECT userid FROM ^'.$this->pluginkey.' WHERE postid=# ORDER BY updated DESC LIMIT 1';
+		$result = qa_db_query_sub($sql, $postid);
+		return qa_db_read_one_value($result, true);
+	}
+
 	// add the old content to the edit_history table
-	private function db_insert_edit(&$params)
+	private function db_insert_edit($params)
 	{
 		$userid = qa_get_logged_in_userid();
 		$sql =
-			'INSERT INTO ^edit_history (postid, updated, title, content, tags, userid)
+			'INSERT INTO ^'.$this->pluginkey.' (postid, updated, title, content, tags, userid)
 			 VALUES (#, NOW(), $, $, $, #)';
 
 		return qa_db_query_sub($sql, $params['postid'], @$params['oldtitle'], @$params['oldcontent'], @$params['oldtags'], $userid);
