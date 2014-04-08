@@ -248,7 +248,7 @@ class qa_edh_revisions
 			$html .= '  <div class="diff-content">';
 			if (!empty($rev['diff_title']))
 				$html .= '    <p class="h2">' . $rev['diff_title'] . '</p>' . "\n";
-			if ($rev['diff_content'])
+			if ($rev['diff_content'] !== null)
 				$html .= '    <div>' . nl2br($rev['diff_content']) . '</div>' . "\n";
 			else
 				$html .= '    <div class="no-diff">' . qa_lang_html('edithistory/content_unchanged') . '</div>' . "\n";
