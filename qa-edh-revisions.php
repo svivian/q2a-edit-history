@@ -56,10 +56,150 @@ class qa_edh_revisions
 		}
 		// main page: list recent revisions
 		else
+		{
+			// main page: list recent revisions
 			$this->recent_edits($qa_content);
 
+			$days = 3; // last days to show from today
+
+			// set language string herefile: qa_lang_html('edithistory/revision_list_title');
+			$qa_content['title'] = 'Revision list (last '.$days.' days)';
+
+			// for admin options to delete revision entry
+			$isadmin = (qa_get_logged_in_level() >= QA_USER_LEVEL_ADMIN);
+
+			// delete edit entry of post that is passed by admin
+			if($isadmin && isset($_GET['delete']) && isset($_GET['updated']))
+			{
+				$postid = $_GET['delete'];
+				$updated = $_GET['updated'];
+				qa_db_query_sub('DELETE FROM ^edit_history
+									WHERE postid = $
+									AND updated = $
+								', $postid, $updated);
+				$qa_content['custom'] = '
+					<p>
+						Edit deleted: '.$postid.' / timestamp: '.$updated.'
+					</p>
+					<p>
+						<a href="/revisions/">back to revisions</a>
+					</p>
+				';
+				return $qa_content;
+			}
+
+			$revisiontable = '
+				<table id="revisiontable">
+					<thead>
+						<th>Time</th> <th>Question edited</th> <th>Editor</th>
+					</thead>
+			';
+
+			// get list of posts
+			$queryrevisionlist = qa_db_query_sub('SELECT postid, updated, title, tags, userid FROM `^edit_history`
+											WHERE updated > DATE_ADD(NOW(), INTERVAL -'.$days.' DAY)
+											ORDER BY updated DESC
+										  ');
+
+			while( ($row = qa_db_read_one_assoc($queryrevisionlist,true)) !== null )
+			{
+				// get link to revision post
+				$activity_url = qa_path('revisions').'/'.$row['postid'];
+				// get link to original question
+				$post_url = qa_path_html( qa_q_request( $row['postid'], $row['title'] ) );
+
+				// workaround to get link to answer
+				$display_post_url = '';
+				if(!empty($post_url))
+				{
+					// get new title of question
+					$qTitle = qa_db_read_one_value( qa_db_query_sub("SELECT title FROM `^posts` WHERE `postid` = ".$row['postid']." LIMIT 1"), true );
+					// get correct public URL
+					$question_url = qa_path_html(qa_q_request($row['postid'], $qTitle), null, qa_opt('site_url'), null, null);
+					// frontend
+					$display_post_url = 'RECENT: <a target="_blank" href="'.$question_url.'">'.$qTitle.'</a>';
+				}
+
+				// skip if empty title
+				if(empty($row['title']))
+				{
+					// do not show admin edits
+					continue;
+				}
+				// anonymous user
+				else if(empty($row['userid']))
+				{
+					$revisionlink = isset($row['title']) ? $row['title'] : "Answer was edited";
+					// display date as before x time
+					$updatetime = implode('', qa_when_to_html( strtotime($row['updated']), qa_opt('show_full_date_days')));
+					$revisiontable .= '
+						<tr>
+							<td>'.$updatetime.'</td>
+							<td style="font-size:11px;">
+								<a target="_blank" href="'.$activity_url.'">'.$revisionlink.'</a>
+								<br />
+								'.$display_post_url.'
+							</td>
+							<td>
+								anonymous
+							</td>
+						</tr>
+					';
+				}
+				else
+				{
+					// admin
+					$deleteoption = '';
+					if($isadmin)
+					{
+						$deleteoption = '<br /><a style="font-size:10px;color:#F99;" href="http://www.kvanto.lt/revisions/?delete='.$row['postid'].'&updated='.$row['updated'].'">delete entry</a>';
+					}
+					// get user details (display avatar and name)
+					$username = qa_db_read_all_assoc(qa_db_query_sub('SELECT handle FROM ^users WHERE userid = #',$row['userid']), 'handle');
+					$user = qa_db_select_with_pending( qa_db_user_account_selectspec($username, false) );
+					$revisionlink = isset($row['title']) ? $row['title'] : "Answer was edited";
+					// display date as before x time
+					$updatetime = implode('', qa_when_to_html( strtotime($row['updated']), qa_opt('show_full_date_days')));
+					$revisiontable .= '
+						<tr>
+							<td style="font-size:11px;">
+								'.$updatetime.'
+							</td>
+							<td style="font-size:11px;">
+								<a style="color:#C55;" target="_blank" href="'.$activity_url.'">REVISION: '.$revisionlink.'</a>
+								<br />
+								'.$display_post_url.'
+							</td>
+							<td style="font-size:11px;">
+								'. qa_get_user_avatar_html($user['flags'], $user['email'], $user['handle'], $user['avatarblobid'], $user['avatarwidth'], $user['avatarheight'], qa_opt('avatar_users_size'), false) . " " . qa_get_one_user_html($user['handle'], false). $deleteoption . '
+							</td>
+						</tr>
+					';
+				}
+			}
+
+			$revisiontable .= '</table>';
+
+			// revision list
+			$qa_content['custom'] .= '
+				<div class="revisionlist" style="border-radius:0; margin-top:-2px; min-height:350px;">
+					'.$revisiontable.'
+				</div> <!-- revisionlist -->
+			';
+
+			// custom css for qa-main
+			$qa_content['custom'] .= '
+				<style type="text/css">
+					#revisiontable {width:98%;}
+					#revisiontable thead, #revisiontable th { border:1px solid #CCC; background:#FFC; padding:8px; }
+					#revisiontable td { padding:8px; border:1px solid #CCC; }
+					#revisiontable tr:nth-of-type(even){ background-color:#DDD }
+				</style>
+			';
+		}
+
 		return $qa_content;
-	}
+	} // end process_request
 
 
 	// Display all recent edits
