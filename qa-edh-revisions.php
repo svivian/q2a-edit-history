@@ -152,7 +152,7 @@ class qa_edh_revisions
 					$deleteoption = '';
 					if($isadmin)
 					{
-						$deleteoption = '<br /><a style="font-size:10px;color:#F99;" href="http://www.kvanto.lt/revisions/?delete='.$row['postid'].'&updated='.$row['updated'].'">delete entry</a>';
+						$deleteoption = '<br /><a style="font-size:10px;color:#F99;" href="/revisions/?delete='.$row['postid'].'&updated='.$row['updated'].'">delete entry</a>';
 					}
 					// get user details (display avatar and name)
 					$username = qa_db_read_all_assoc(qa_db_query_sub('SELECT handle FROM ^users WHERE userid = #',$row['userid']), 'handle');
