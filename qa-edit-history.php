@@ -4,7 +4,7 @@
 	License: http://www.gnu.org/licenses/gpl.html
 */
 
-require_once QA_INCLUDE_DIR.'qa-app-users.php';
+require_once QA_INCLUDE_DIR.'app/users.php';
 
 class qa_edit_history
 {
@@ -84,7 +84,7 @@ class qa_edit_history
 		}
 
 		// get list of user permissions
-		require_once QA_INCLUDE_DIR.'qa-app-options.php';
+		require_once QA_INCLUDE_DIR.'app/options.php';
 		$permitopts_view = qa_admin_permit_options(QA_PERMIT_ALL, QA_PERMIT_SUPERS, false, false);
 		$permitopts_admin = qa_admin_permit_options(QA_PERMIT_ALL, QA_PERMIT_SUPERS, false, false);
 		// check if options are set

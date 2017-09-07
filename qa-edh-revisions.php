@@ -107,7 +107,7 @@ class qa_edh_revisions
 		}
 
 		// censor posts; build list of userids as we go
-		require_once QA_INCLUDE_DIR.'qa-util-string.php';
+		require_once QA_INCLUDE_DIR.'util/string.php';
 		$this->options = array(
 			'blockwordspreg' => qa_get_block_words_preg(),
 			'fulldatedays' => qa_opt('show_full_date_days'),
@@ -290,7 +290,7 @@ class qa_edh_revisions
 			return false;
 		}
 
-		require_once QA_INCLUDE_DIR.'qa-app-posts.php';
+		require_once QA_INCLUDE_DIR.'app/posts.php';
 		$revisions = $this->db_get_revisions($postid);
 
 		qa_post_set_content($postid, $revisions[$revid]['title'], $revisions[$revid]['content'], null, null, null, null, qa_get_logged_in_userid());
@@ -306,7 +306,7 @@ class qa_edh_revisions
 			return false;
 		}
 
-		// require_once QA_INCLUDE_DIR.'qa-app-posts.php';
+		// require_once QA_INCLUDE_DIR.'app/posts.php';
 		// $revisions = $this->db_get_revisions($postid);
 		// qa_post_set_content($postid, $revisions[$revid]['title'], $revisions[$revid]['content']);
 		// qa_redirect('revisions/'.$postid);
