@@ -23,6 +23,14 @@ Installation & Usage
 Version history
 -------------------------------------------------
 
+### 1.5:
+
+- Page listing recent edits at `/revisions`
+- Add missing database indexes and foreign keys.
+- Fix mismatch in length of content field.
+
+Note: this version requires a database upgrade.
+
 ### 1.4:
 
 - Allow reverting of edits to earlier revision and option to control permission level (default Admin).
