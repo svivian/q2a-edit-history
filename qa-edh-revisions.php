@@ -40,23 +40,26 @@ class qa_edh_revisions
 		$qa_content = qa_content_prepare();
 		preg_match($this->reqmatch, $request, $matches);
 
-		if (isset($matches[2]))
-		{
+		if (isset($matches[2])) {
 			$revertid = qa_post_text('revert');
 			$deleteid = qa_post_text('delete');
-			// revert a revision
-			if ($revertid !== null)
+			if ($revertid !== null) {
+				// revert a revision
 				$this->revert_revision($qa_content, $matches[2], $revertid);
-			// delete a revision
-			else if ($deleteid !== null)
+			}
+			else if ($deleteid !== null) {
+				// delete a revision
 				$this->delete_revision($qa_content, $matches[2], $revertid);
-			// post revisions: list all edits to this post
-			else
+			}
+			else {
+				// post revisions: list all edits to this post
 				$this->post_revisions($qa_content, $matches[2]);
+			}
 		}
-		// main page: list recent revisions
-		else
+		else {
+			// main page: list recent revisions
 			$this->recent_edits($qa_content);
+		}
 
 		return $qa_content;
 	}
@@ -71,23 +74,59 @@ class qa_edh_revisions
 		if (!$this->view_permit($qa_content))
 			return;
 
+		// fetch recent edits
+		$sqlEdits =
+			'SELECT e.postid, UNIX_TIMESTAMP(e.updated) AS updated, e.userid, p.type, LEFT(p.type, 1) AS basetype, p.parentid, p.title,
+				par.postid AS par_postid, par.type AS par_type, LEFT(par.type, 1) AS par_basetype, par.title as par_title, u.handle
+			 FROM qa_edit_history e
+			 LEFT JOIN qa_posts p ON e.postid=p.postid
+			 LEFT JOIN qa_posts par ON p.parentid=par.postid
+			 LEFT JOIN qa_users u ON e.userid=u.userid
+			 ORDER BY e.updated DESC LIMIT 50';
+
+		$recentEdits = qa_db_read_all_assoc(qa_db_query_sub($sqlEdits));
+
+		$html = '<div class="qa-q-list qa-edit-history-list">';
+
+		foreach ($recentEdits as $edit) {
+			$qId = $edit['par_postid'] ? $edit['par_postid'] : $edit['postid'];
+			$qTitle = $edit['par_title'] ? $edit['par_title'] : $edit['title'];
+			$qRequest = qa_q_request($qId, $qTitle);
+			$anchor = strtolower($edit['basetype']) . $edit['postid'];
+			$targetUrl = qa_path_html($qRequest, ['show' => $edit['postid']], null, null, $anchor);
+
+			$actionName = qa_lang($edit['basetype'] === 'A' ? 'main/answer_edited' : 'main/edited');
+			$actionTime = implode(' ', qa_when_to_html($edit['updated'], qa_opt('show_full_date_days')));
+			$actionUser = qa_lang_html_sub('main/by_x', $edit['handle']);
+
+			$html .= '<div class="qa-q-list-item">';
+			$html .= '  <div class="qa-q-item-title">';
+			$html .= '    <a href="' . $targetUrl . '">' . qa_html($qTitle) . '</a>';
+			$html .= '  </div>';
+			$html .= '  <div class="qa-q-item-avatar-meta">';
+			$html .= '    <div class="qa-q-item-meta">' . "$actionName $actionTime $actionUser" . '</div>';
+			$html .= '  </div>';
+			$html .= '</div>';
+		}
+		$html .= '</div>';
+
 		$qa_content['title'] = qa_lang_html('edithistory/main_title');
-		$qa_content['custom'] = '<p>This page will list posts that have been edited recently.</p>';
+		$qa_content['custom'] = $html;
 	}
 
+	/*
+		Display all the edits made to a post ($postid already validated).
+		Post edits are stored in a special way:
+		- The `qa_posts` table contains the latest version displayed, as expected. The `qa_edit_history`
+		  table stores each previous revision, with the time and user of the later one.
+		- Each time applies to the next revision, with `qa_posts.created` being when the first revision
+		  from `qa_edit_history` was posted. The time of the latest revision should match
+		  `qa_posts.updated`.
+		- Similarly for users, `qa_posts.userid` is the author of the first revision, while
+		  `qa_edit_history.userid` specifies who made the next revision. The userid of the latest
+		  revision should match `qa_posts.lastuserid`.
+	*/
 	private function post_revisions(&$qa_content, $postid)
-/*
-	Display all the edits made to a post ($postid already validated).
-	Post edits are stored in a special way:
-	- The `qa_posts` table contains the latest version displayed, as expected. The `qa_edit_history`
-	  table stores each previous revision, with the time and user of the later one.
-	- Each time applies to the next revision, with `qa_posts.created` being when the first revision
-	  from `qa_edit_history` was posted. The time of the latest revision should match
-	  `qa_posts.updated`.
-	- Similarly for users, `qa_posts.userid` is the author of the first revision, while
-	  `qa_edit_history.userid` specifies who made the next revision. The userid of the latest
-	  revision should match `qa_posts.lastuserid`.
-*/
 	{
 		$qa_content['title'] = qa_lang_html('edithistory/plugin_title');
 

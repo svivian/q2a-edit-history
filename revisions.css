@@ -15,9 +15,10 @@ del {
 	border-radius: 6px;
 }
 .diff-date {
+	overflow: hidden;
 	margin: 0;
 	padding: 5px 10px;
-	line-height: 26px;
+	line-height: 33px;
 	border-bottom: 1px solid #ccc;
 	border-radius: 5px 5px 0 0;
 	background: #eee;
@@ -39,11 +40,10 @@ del {
 .diff-button {
 	float: right;
 	margin-left: 5px;
+	line-height: 33px;
+	padding: 0 10px;
 }
 .diff-button.qa-form-tall-button {
-	font-size: 11px;
-	font-weight: normal;
-	padding: 0 10px 1px;
 }
 
 
