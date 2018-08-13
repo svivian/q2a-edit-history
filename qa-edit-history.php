@@ -34,9 +34,10 @@ class qa_edit_history
 	{
 		require_once QA_INCLUDE_DIR . 'db/maxima.php';
 
+		$contentDefinition = 'VARCHAR(' . QA_DB_MAX_CONTENT_LENGTH . ')';
 		$queries = array(
-			// [0]: version 1
-			'CREATE TABLE IF NOT EXISTS ^'.$this->pluginkey.' (
+			// [0]: version 1.0
+			"CREATE TABLE IF NOT EXISTS ^{$this->pluginkey} (
 			   postid int(10) unsigned NOT NULL,
 			   updated datetime NOT NULL,
 			   title varchar(800) DEFAULT NULL,
@@ -45,15 +46,22 @@ class qa_edit_history
 			   userid int(10) unsigned DEFAULT NULL,
 			   reason varchar(800) DEFAULT NULL,
 			   PRIMARY KEY (postid, updated)
-			 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;',
+			 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;",
 
-			// [1-3]: version 2
-			'ALTER TABLE ^'.$this->pluginkey.' DROP PRIMARY KEY;',
-			'ALTER TABLE ^'.$this->pluginkey.' ADD id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;',
-			'ALTER TABLE ^'.$this->pluginkey.' ADD UNIQUE(postid, updated, userid);',
+			// [1-3]: version 1.3
+			"ALTER TABLE ^{$this->pluginkey} DROP PRIMARY KEY;",
+			"ALTER TABLE ^{$this->pluginkey} ADD id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;",
+			"ALTER TABLE ^{$this->pluginkey} ADD UNIQUE(postid, updated, userid);",
 
-			// [4]: version 3
-			'ALTER TABLE ^'.$this->pluginkey.' MODIFY content VARCHAR(' . QA_DB_MAX_CONTENT_LENGTH . ')',
+			// [4]: version 1.4.3
+			"ALTER TABLE ^{$this->pluginkey} MODIFY content $contentDefinition",
+
+			// [5-9]: version 1.5
+			"ALTER TABLE ^{$this->pluginkey} ADD INDEX(updated)",
+			"DELETE FROM ^{$this->pluginkey} WHERE postid NOT IN (SELECT postid FROM ^posts)",
+			"DELETE FROM ^{$this->pluginkey} WHERE userid NOT IN (SELECT userid FROM ^users)",
+			"ALTER TABLE ^{$this->pluginkey} ADD FOREIGN KEY (postid) REFERENCES ^posts(postid) ON DELETE CASCADE ON UPDATE CASCADE;",
+			"ALTER TABLE ^{$this->pluginkey} ADD FOREIGN KEY (userid) REFERENCES ^users(userid) ON DELETE SET NULL ON UPDATE CASCADE;",
 		);
 		$tablename = qa_db_add_table_prefix($this->pluginkey);
 
@@ -62,7 +70,7 @@ class qa_edit_history
 			return $queries;
 
 		// table exists: check if it's at current version
-		$sqlCols = 'SHOW COLUMNS FROM ^'.$this->pluginkey;
+		$sqlCols = "SHOW COLUMNS FROM ^{$this->pluginkey}";
 		$fieldData = qa_db_read_all_assoc(qa_db_query_sub($sqlCols));
 		$fieldNames = array_map(function($elem) {
 			return $elem['Field'];
@@ -75,12 +83,19 @@ class qa_edit_history
 		$contentFieldDef = '';
 		foreach ($fieldData as $field) {
 			if ($field['Field'] === 'content')
-				$contentFieldDef = strtolower($field['Type']);
+				$contentFieldDef = strtoupper($field['Type']);
 		}
-		$contentTargetDef = 'varchar(' . QA_DB_MAX_CONTENT_LENGTH . ')';
 
-		if ($contentFieldDef !== $contentTargetDef)
+		if ($contentFieldDef !== $contentDefinition)
 			return array_slice($queries, 4);
+
+		// add indexes and foreign keys
+		$foreignKeyFields = array_filter($fieldData, function($elem) {
+			return in_array($elem['Field'], ['updated', 'postid', 'userid']) && $elem['Key'] === 'MUL';
+		});
+
+		if (count($foreignKeyFields) !== 3)
+			return array_slice($queries, 5);
 
 		// all up to date
 		return null;
