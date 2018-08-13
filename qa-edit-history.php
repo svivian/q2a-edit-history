@@ -4,7 +4,7 @@
 	License: http://www.gnu.org/licenses/gpl.html
 */
 
-require_once QA_INCLUDE_DIR.'app/users.php';
+require_once QA_INCLUDE_DIR . 'app/users.php';
 
 class qa_edit_history
 {
@@ -32,6 +32,8 @@ class qa_edit_history
 
 	public function init_queries($tableslc)
 	{
+		require_once QA_INCLUDE_DIR . 'db/maxima.php';
+
 		$queries = array(
 			// [0]: version 1
 			'CREATE TABLE IF NOT EXISTS ^'.$this->pluginkey.' (
@@ -49,6 +51,9 @@ class qa_edit_history
 			'ALTER TABLE ^'.$this->pluginkey.' DROP PRIMARY KEY;',
 			'ALTER TABLE ^'.$this->pluginkey.' ADD id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;',
 			'ALTER TABLE ^'.$this->pluginkey.' ADD UNIQUE(postid, updated, userid);',
+
+			// [4]: version 3
+			'ALTER TABLE ^'.$this->pluginkey.' MODIFY content VARCHAR(' . QA_DB_MAX_CONTENT_LENGTH . ')',
 		);
 		$tablename = qa_db_add_table_prefix($this->pluginkey);
 
@@ -58,9 +63,24 @@ class qa_edit_history
 
 		// table exists: check if it's at current version
 		$sqlCols = 'SHOW COLUMNS FROM ^'.$this->pluginkey;
-		$fields = qa_db_read_all_values(qa_db_query_sub($sqlCols));
-		if (!in_array('id', $fields))
+		$fieldData = qa_db_read_all_assoc(qa_db_query_sub($sqlCols));
+		$fieldNames = array_map(function($elem) {
+			return $elem['Field'];
+		}, $fieldData);
+
+		if (!in_array('id', $fieldNames))
 			return array_slice($queries, 1);
+
+		// ensure content field matches definition from qa_posts
+		$contentFieldDef = '';
+		foreach ($fieldData as $field) {
+			if ($field['Field'] === 'content')
+				$contentFieldDef = strtolower($field['Type']);
+		}
+		$contentTargetDef = 'varchar(' . QA_DB_MAX_CONTENT_LENGTH . ')';
+
+		if ($contentFieldDef !== $contentTargetDef)
+			return array_slice($queries, 4);
 
 		// all up to date
 		return null;
@@ -84,7 +104,7 @@ class qa_edit_history
 		}
 
 		// get list of user permissions
-		require_once QA_INCLUDE_DIR.'app/options.php';
+		require_once QA_INCLUDE_DIR . 'app/options.php';
 		$permitopts_view = qa_admin_permit_options(QA_PERMIT_ALL, QA_PERMIT_SUPERS, false, false);
 		$permitopts_admin = qa_admin_permit_options(QA_PERMIT_ALL, QA_PERMIT_SUPERS, false, false);
 		// check if options are set
