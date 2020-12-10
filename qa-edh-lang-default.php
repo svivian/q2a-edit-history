@@ -32,6 +32,8 @@ return array(
 	'admin_active_note' => 'Untick to stop tracking post edits.',
 	'admin_ninja' => 'Ninja edit time',
 	'admin_ninja_note' => 'Time (in seconds) between logged edits.',
+	'admin_external_css' => 'Disable plugin stylesheet',
+	'admin_external_css_note' => 'Tick this if you want to use your own CSS instead of the one shipped with this plugin',
 
 	'admin_perms' => 'Edit History visible for',
 	'admin_perms_note' => 'User level allowed to see post revisions.',
