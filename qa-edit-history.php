@@ -13,6 +13,7 @@ class qa_edit_history
 	private $opt_ninja = 'edit_history_ninja';
 	private $opt_perms = 'edit_history_view_perms';
 	private $opt_admin = 'edit_history_admin_perms';
+	private $opt_ext_css = 'edit_history_external_css';
 
 	public function option_default($option)
 	{
@@ -21,6 +22,8 @@ class qa_edit_history
 				return 0;
 			case $this->opt_ninja:
 				return 300;
+			case $this->opt_ext_css:
+				return 0;
 			case $this->opt_perms:
 				return QA_PERMIT_USERS;
 			case $this->opt_admin:
@@ -114,6 +117,7 @@ class qa_edit_history
 			qa_opt($this->opt_ninja, qa_post_text('eh_ninja_time'));
 			qa_opt($this->opt_perms, qa_post_text('eh_user_perms'));
 			qa_opt($this->opt_admin, qa_post_text('eh_user_admin'));
+			qa_opt($this->opt_ext_css, qa_post_text('eh_external_css'));
 
 			$saved_msg = qa_lang_html('admin/options_saved');
 		}
@@ -125,6 +129,7 @@ class qa_edit_history
 		// check if options are set
 		$view_perms = qa_opt($this->opt_perms);
 		$admin_perms = qa_opt($this->opt_admin);
+		$external_css = qa_opt($this->opt_ext_css);
 		$sel_perms = isset($permitopts_view[$view_perms]) ? $permitopts_view[$view_perms] : $this->option_default($this->opt_perms);
 		$sel_admin = isset($permitopts_admin[$admin_perms]) ? $permitopts_admin[$admin_perms] : $this->option_default($this->opt_admin);
 
@@ -148,6 +153,14 @@ class qa_edit_history
 					'type' => 'number',
 					'tags' => 'name="eh_ninja_time"',
 					'value' => qa_opt($this->opt_ninja),
+				),
+				// external css
+				array(
+					'label' => qa_lang_html('edithistory/admin_external_css'),
+					'note' => qa_lang_html('edithistory/admin_external_css_note'),
+					'type' => 'checkbox',
+					'tags' => 'name="eh_external_css"',
+					'value' => qa_opt($this->opt_ext_css),
 				),
 				// viewing permissions
 				array(

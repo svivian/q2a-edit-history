@@ -150,6 +150,7 @@ class qa_edh_revisions
 		$this->options = array(
 			'blockwordspreg' => qa_get_block_words_preg(),
 			'fulldatedays' => qa_opt('show_full_date_days'),
+			'external_css' => qa_opt('edit_history_external_css'),
 		);
 		$userids = array();
 
@@ -301,11 +302,13 @@ class qa_edh_revisions
 		// prevent search engines indexing revision pages
 		$qh[] = '<meta name="robots" content="noindex,follow">';
 		// styles for this page
-		$csslines = file_get_contents($this->directory.'revisions.css');
-		$mincss = preg_replace('~\s+~', ' ', $csslines);
-		$qh[] = '<style>';
-		$qh[] = $mincss;
-		$qh[] = '</style>';
+		if (!$this->options['external_css']) {
+			$csslines = file_get_contents($this->directory.'revisions.css');
+			$mincss = preg_replace('~\s+~', ' ', $csslines);
+			$qh[] = '<style>';
+			$qh[] = $mincss;
+			$qh[] = '</style>';
+		}
 
 		$qa_content['script_onloads'][] = array(
 			'$("button[name=revert]").click(function() {',
